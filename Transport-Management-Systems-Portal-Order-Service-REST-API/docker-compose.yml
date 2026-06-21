@@ -1,0 +1,95 @@
+services:
+  graphhopper:
+    image: israelhikingmap/graphhopper:latest
+    container_name: graphhopper
+    ports:
+      - "8989:8989"
+    volumes:
+      - ./graphhopper_data:/data
+    environment:
+      # Increased memory for the import process
+      - JAVA_OPTS=-Xmx4g -Xms4g
+    command: >
+      --url https://download.geofabrik.de/north-america/us/california/socal-latest.osm.pbf
+      --host 0.0.0.0
+    restart: always
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    container_name: keycloak
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      HTTP_EVENT_LISTENER_URL: "http://host.docker.internal:5230/api/client/user-registration-sync"
+      HTTP_EVENT_LISTENER_SECRET: tms-event-user-2478
+      # KC_DB: mysql
+      # KC_DB_URL: jdbc:mysql://whatever.mysql.database.azure.com:3306/<schema-name>
+      # KC_DB_USERNAME: <USERNAME>
+      # KC_DB_PASSWORD: <PASSWORD>
+    volumes:
+      - ./plugins:/opt/keycloak/providers
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      - "nginx:host-gateway"
+    command: 
+      - start-dev 
+      - --http-enabled=true 
+      - --spi-events-listener-http-url=http://host.docker.internal:5230/api/client/user-registration-sync
+    # depends_on:
+    #   - nginx
+    restart: unless-stopped
+
+  timescaledb:
+    image: timescale/timescaledb:latest-pg18
+    container_name: postgres-timescale-database
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=tms
+      - POSTGRES_PASSWORD=tms@2367
+      - POSTGRES_DB=tms
+      - TS_TUNE_MEMORY=1GB
+      - TS_TUNE_NUM_CPUS=2
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./plugins:/opt/data/timescaledb_data
+  
+  seaweedfs:
+    image: chrislusf/seaweedfs:latest
+    container_name: seaweedfs
+    ports:
+      - "127.0.0.1:8333:8333" # S3 API
+      - "127.0.0.1:9333:9333" # Master UI (Cluster management)
+      - "127.0.0.1:8888:8888" # Filer UI (File browser)
+      - "127.0.0.1:9340:9340" # Volume Server
+      - "127.0.0.1:23646:23646" # Admin UI
+    environment:
+      - AWS_ACCESS_KEY_ID=admin
+      - AWS_SECRET_ACCESS_KEY=password123
+    volumes:
+      - ./tms-file-storage-data:/data
+    command: >
+      server
+      -dir=/data
+      -s3
+      -s3.port=8333
+      -filer
+      -filer.port=8888
+      -master.port=9333
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:management
+    container_name: rabbitmq
+    hostname: tms-mq
+    ports:
+      - "5672:5672"   # RabbitMQ messaging port
+      - "15672:15672" # RabbitMQ Management UI port (ADD THIS)
+    environment:
+      - RABBITMQ_DEFAULT_USER=tms
+      - RABBITMQ_DEFAULT_PASS=tms123
+    volumes:
+      - ./rabbitmq/queue/data:/var/lib/rabbitmq
+      - ./rabbitmq/queue/log/:/var/log/rabbitmq

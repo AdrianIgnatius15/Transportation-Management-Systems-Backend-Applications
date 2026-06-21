@@ -1,0 +1,11 @@
+// Folders to ignore
+obj
+bin
+.vscode
+rabbitmq
+graphhopper_data
+tms-file-storage-data
+
+//Files to ignore
+appsettings.Development.json
+*.sln
