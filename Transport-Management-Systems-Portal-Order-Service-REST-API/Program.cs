@@ -23,22 +23,26 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<TMSDbContext>(options => options.UseNpgsql(
     builder.Configuration.GetConnectionString("TMS-Database")
 ));
-builder.Services.Configure<DocumentStorageService>(builder.Configuration.GetSection("SeaweedFS"));
+builder.Services.Configure<DocumentStorageSettings>(builder.Configuration.GetSection("SeaweedFS"));
 
 builder.Services.AddSingleton<IRabbitMQConnection, RabbitMQConnectionMiddleware>();
 builder.Services.AddSingleton<IAmazonS3>(_ =>
 {
-    var settings = builder.Configuration.GetSection("SeaweedFS").Get<DocumentStorageSettings>()!;
+    // var settings = builder.Configuration.GetSection("SeaweedFS").Get<DocumentStorageSettings>()!;
+    var config = builder.Configuration.GetSection("SeaweedFS");
+    var serviceUrl = config["ServiceURL"];
+    var accessKey = config["AccessKey"];
+    var secretKey = config["SecretKey"];
 
-    var config = new AmazonS3Config
+    var configuration = new AmazonS3Config
     {
-        ServiceURL = settings.ServiceUrl,
+        ServiceURL = serviceUrl,
         ForcePathStyle = true, //Required for SeaweedFS / non-AWS S3
         UseHttp = true,
         SignatureMethod = Amazon.Runtime.SigningAlgorithm.HmacSHA1
     };
 
-    return new AmazonS3Client(settings.AccessKey, settings.SecretKey, config);
+    return new AmazonS3Client(accessKey, secretKey, configuration);
 });
 builder.Services.AddHostedService<BucketInitializer>();
 builder.Services.AddTransient<IClaimsTransformation, KeycloakRoleTransformer>();
