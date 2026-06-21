@@ -1,6 +1,12 @@
+using Microsoft.EntityFrameworkCore;
+using Transportation_Management_System_Tracking_Service_REST_API.Data;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddDbContext<TMSDbContext>(options => options.UseNpgsql(
+    builder.Configuration.GetConnectionString("TMS-Database")
+));
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
