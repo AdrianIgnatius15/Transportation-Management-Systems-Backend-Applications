@@ -16,9 +16,12 @@ using Transport_Management_Systems_Portal_Order_Service_REST_API.Services.Config
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddDbContext<TMSDbContext>(options => options.UseMySql(
-    builder.Configuration.GetConnectionString("TMS-Database"),
-    ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("TMS-Database"))
+// builder.Services.AddDbContext<TMSDbContext>(options => options.UseMySql(
+//     builder.Configuration.GetConnectionString("TMS-Database"),
+//     ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("TMS-Database"))
+// ));
+builder.Services.AddDbContext<TMSDbContext>(options => options.UseNpgsql(
+    builder.Configuration.GetConnectionString("TMS-Database")
 ));
 builder.Services.Configure<DocumentStorageService>(builder.Configuration.GetSection("SeaweedFS"));
 
