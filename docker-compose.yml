@@ -24,10 +24,10 @@ services:
       KEYCLOAK_ADMIN_PASSWORD: admin
       HTTP_EVENT_LISTENER_URL: "http://host.docker.internal:5230/api/client/user-registration-sync"
       HTTP_EVENT_LISTENER_SECRET: tms-event-user-2478
-      # KC_DB: mysql
-      # KC_DB_URL: jdbc:mysql://whatever.mysql.database.azure.com:3306/<schema-name>
-      # KC_DB_USERNAME: <USERNAME>
-      # KC_DB_PASSWORD: <PASSWORD>
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://timescaledb:5432/tms
+      KC_DB_USERNAME: tms
+      KC_DB_PASSWORD: tms@2367
     volumes:
       - ./plugins:/opt/keycloak/providers
     extra_hosts:
@@ -55,6 +55,22 @@ services:
       - "5432:5432"
     volumes:
       - ./plugins:/opt/data/timescaledb_data
+
+  redis:
+    image: redis:7.4-alpine
+    container_name: redis-cache-database
+    command: redis-server --requirepass tms-cache4567 --appendonly yes
+    volumes:
+      - ./plugins:/opt/data/redis_cache_data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "tms-cache4567", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
   
   seaweedfs:
     image: chrislusf/seaweedfs:latest
