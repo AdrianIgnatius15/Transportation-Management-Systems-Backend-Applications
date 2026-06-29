@@ -10,6 +10,7 @@ namespace Transportation_Management_System_Tracking_Service_REST_API.Models.Enum
         OutForDelivery,
         Delivered,
         FailedAttempt,
-        Exception
+        Exception,
+        PositionUpdate
     }
 }
