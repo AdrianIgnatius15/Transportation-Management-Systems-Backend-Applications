@@ -1,15 +1,15 @@
-using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Transport_Management_Systems_Portal_Order_Service_REST_API.Data.Interfaces;
+using Transport_Management_Systems_Portal_Order_Service_REST_API.DTOs.Address;
+using Transport_Management_Systems_Portal_Order_Service_REST_API.DTOs.Client;
 using Transport_Management_Systems_Portal_Order_Service_REST_API.DTOs.Order;
 using Transport_Management_Systems_Portal_Order_Service_REST_API.DTOs.Pagination;
 using Transport_Management_Systems_Portal_Order_Service_REST_API.DTOs.Piece;
-using Transport_Management_Systems_Portal_Order_Service_REST_API.Utilities;
-using Transport_Management_Systems_Portal_Order_Service_REST_API.DTOs.Client;
-using Transport_Management_Systems_Portal_Order_Service_REST_API.DTOs.Address;
 using Transport_Management_Systems_Portal_Order_Service_REST_API.Models;
-using System.ComponentModel.DataAnnotations;
 using Transport_Management_Systems_Portal_Order_Service_REST_API.Service.Interface;
+using Transport_Management_Systems_Portal_Order_Service_REST_API.Utilities;
 
 namespace Transport_Management_Systems_Portal_Order_Service_REST_API.Controllers
 {
@@ -28,12 +28,15 @@ namespace Transport_Management_Systems_Portal_Order_Service_REST_API.Controllers
 
         [HttpGet("emailPagination")]
         [Authorize(Roles = "shipper")]
-        public async Task<ActionResult<PaginatedResult<OrderReadDto>>> GetAllOrdersByClientEmail([FromQuery] PaginationOrderSearchParameters parameters)
+        public async Task<ActionResult<PaginatedResult<OrderReadDto>>> GetAllOrdersByClientEmail(
+            [FromQuery] PaginationOrderSearchParameters parameters
+        )
         {
             if (parameters.Email == "" || parameters.Email == null)
             {
                 return BadRequest("Email of the shipper is required!");
-            } else
+            }
+            else
             {
                 string shipperEmail = parameters.Email;
                 if (parameters.PageNumber == 0 && parameters.PageSize == 0)
@@ -42,21 +45,39 @@ namespace Transport_Management_Systems_Portal_Order_Service_REST_API.Controllers
                 }
 
                 Console.WriteLine("Email", shipperEmail);
-                var pagedOrders = await _repo.GetAllOrdersByClientEmailWithPagination(shipperEmail, parameters);
+                var pagedOrders = await _repo.GetAllOrdersByClientEmailWithPagination(
+                    shipperEmail,
+                    parameters
+                );
 
-                var orderReadDtos = pagedOrders.Items.Select(o =>
-                {
-                    var orderReadDto = MapperUtility.Map<Order, OrderReadDto>(o);
-                    if (o.Client != null)
-                        orderReadDto.Client = MapperUtility.Map<Client, ClientReadDto>(o.Client);
-                    if (o.ShipmentAddress != null)
-                        orderReadDto.ShipmentAddress = MapperUtility.Map<Address, AddressReadDto>(o.ShipmentAddress);
-                    if (o.DeliveryAddress != null)
-                        orderReadDto.DeliveryAddress = MapperUtility.Map<Address, AddressReadDto>(o.DeliveryAddress);
-                    return orderReadDto;
-                }).ToList();
+                var orderReadDtos = pagedOrders
+                    .Items.Select(o =>
+                    {
+                        var orderReadDto = MapperUtility.Map<Order, OrderReadDto>(o);
+                        if (o.Client != null)
+                            orderReadDto.Client = MapperUtility.Map<Client, ClientReadDto>(
+                                o.Client
+                            );
+                        if (o.ShipmentAddress != null)
+                            orderReadDto.ShipmentAddress = MapperUtility.Map<
+                                Address,
+                                AddressReadDto
+                            >(o.ShipmentAddress);
+                        if (o.DeliveryAddress != null)
+                            orderReadDto.DeliveryAddress = MapperUtility.Map<
+                                Address,
+                                AddressReadDto
+                            >(o.DeliveryAddress);
+                        return orderReadDto;
+                    })
+                    .ToList();
 
-                var result = new PaginatedResult<OrderReadDto>(orderReadDtos, pagedOrders.TotalCount, pagedOrders.PageNumber, pagedOrders.PageSize);
+                var result = new PaginatedResult<OrderReadDto>(
+                    orderReadDtos,
+                    pagedOrders.TotalCount,
+                    pagedOrders.PageNumber,
+                    pagedOrders.PageSize
+                );
 
                 return Ok(result);
             }
@@ -64,12 +85,15 @@ namespace Transport_Management_Systems_Portal_Order_Service_REST_API.Controllers
 
         [HttpGet("all/shipperid")]
         [Authorize(Roles = "shipper,receiver")]
-        public async Task<ActionResult<PaginatedResult<OrderReadDto>>> GetAllOrdersWithShipperIdPaginated([FromQuery] PaginationOrderSearchParameters parameters)
+        public async Task<
+            ActionResult<PaginatedResult<OrderReadDto>>
+        > GetAllOrdersWithShipperIdPaginated([FromQuery] PaginationOrderSearchParameters parameters)
         {
             if (!parameters.Id.HasValue)
             {
                 return BadRequest("Provide the shipper's unique ID found in the account details!");
-            } else
+            }
+            else
             {
                 Guid id = parameters.Id.Value;
                 if (parameters.PageNumber == 0 && parameters.PageSize == 0)
@@ -77,21 +101,39 @@ namespace Transport_Management_Systems_Portal_Order_Service_REST_API.Controllers
                     parameters = new PaginationOrderSearchParameters();
                 }
 
-                var ordersPaginated = await _repo.GetAllOrdersByClientIdWithPagination(id, parameters);
+                var ordersPaginated = await _repo.GetAllOrdersByClientIdWithPagination(
+                    id,
+                    parameters
+                );
 
-                var orderReadDtos = ordersPaginated.Items.Select(o =>
-                {
-                    var orderReadDto = MapperUtility.Map<Order, OrderReadDto>(o);
-                    if (o.Client != null)
-                        orderReadDto.Client = MapperUtility.Map<Client, ClientReadDto>(o.Client);
-                    if (o.ShipmentAddress != null)
-                        orderReadDto.ShipmentAddress = MapperUtility.Map<Address, AddressReadDto>(o.ShipmentAddress);
-                    if (o.DeliveryAddress != null)
-                        orderReadDto.DeliveryAddress = MapperUtility.Map<Address, AddressReadDto>(o.DeliveryAddress);
-                    return orderReadDto;
-                }).ToList();
+                var orderReadDtos = ordersPaginated
+                    .Items.Select(o =>
+                    {
+                        var orderReadDto = MapperUtility.Map<Order, OrderReadDto>(o);
+                        if (o.Client != null)
+                            orderReadDto.Client = MapperUtility.Map<Client, ClientReadDto>(
+                                o.Client
+                            );
+                        if (o.ShipmentAddress != null)
+                            orderReadDto.ShipmentAddress = MapperUtility.Map<
+                                Address,
+                                AddressReadDto
+                            >(o.ShipmentAddress);
+                        if (o.DeliveryAddress != null)
+                            orderReadDto.DeliveryAddress = MapperUtility.Map<
+                                Address,
+                                AddressReadDto
+                            >(o.DeliveryAddress);
+                        return orderReadDto;
+                    })
+                    .ToList();
 
-                var result = new PaginatedResult<OrderReadDto>(orderReadDtos, ordersPaginated.TotalCount, ordersPaginated.PageNumber, ordersPaginated.PageSize);
+                var result = new PaginatedResult<OrderReadDto>(
+                    orderReadDtos,
+                    ordersPaginated.TotalCount,
+                    ordersPaginated.PageNumber,
+                    ordersPaginated.PageSize
+                );
 
                 return Ok(result);
             }
@@ -99,7 +141,9 @@ namespace Transport_Management_Systems_Portal_Order_Service_REST_API.Controllers
 
         [HttpPost("all")]
         [Authorize(Roles = "shipper,receiver")]
-        public async Task<ActionResult<PaginatedResult<OrderReadDto>>> GetAllOrders([FromBody] PaginationParameters parameters)
+        public async Task<ActionResult<PaginatedResult<OrderReadDto>>> GetAllOrders(
+            [FromBody] PaginationParameters parameters
+        )
         {
             if (parameters == null)
             {
@@ -108,18 +152,29 @@ namespace Transport_Management_Systems_Portal_Order_Service_REST_API.Controllers
 
             var pagedAllOrders = await _repo.GetAllOrdersWithPagination(parameters);
 
-            var orderReadDtos = pagedAllOrders.Items.Select(order =>
-            {
-                var orderReadDto = MapperUtility.Map<Order, OrderReadDto>(order);
-                return orderReadDto;
-            }).ToList();
+            var orderReadDtos = pagedAllOrders
+                .Items.Select(order =>
+                {
+                    var orderReadDto = MapperUtility.Map<Order, OrderReadDto>(order);
+                    return orderReadDto;
+                })
+                .ToList();
 
-            return Ok(new PaginatedResult<OrderReadDto>(orderReadDtos, pagedAllOrders.TotalCount, pagedAllOrders.PageNumber, pagedAllOrders.PageSize));
+            return Ok(
+                new PaginatedResult<OrderReadDto>(
+                    orderReadDtos,
+                    pagedAllOrders.TotalCount,
+                    pagedAllOrders.PageNumber,
+                    pagedAllOrders.PageSize
+                )
+            );
         }
 
         [HttpPost("create")]
         [Authorize(Roles = "shipper")]
-        public async Task<ActionResult<string>> CreateOrder([FromBody] OrderCreateDto orderCreateDto)
+        public async Task<ActionResult<string>> CreateOrder(
+            [FromBody] OrderCreateDto orderCreateDto
+        )
         {
             if (orderCreateDto == null)
             {
@@ -130,13 +185,19 @@ namespace Transport_Management_Systems_Portal_Order_Service_REST_API.Controllers
             {
                 var validationResults = new List<ValidationResult>();
 
-                return BadRequest(new { errors = validationResults.Select(v => v.MemberNames).ToList() });
+                return BadRequest(
+                    new { errors = validationResults.Select(v => v.MemberNames).ToList() }
+                );
             }
             else
             {
                 // Map DTOs to entities
-                var shipmentAddress = MapperUtility.Map<AddressCreateDto, Address>(orderCreateDto.ShipmentAddress);
-                var deliveryAddress = MapperUtility.Map<AddressCreateDto, Address>(orderCreateDto.DeliveryAddress);
+                var shipmentAddress = MapperUtility.Map<AddressCreateDto, Address>(
+                    orderCreateDto.ShipmentAddress
+                );
+                var deliveryAddress = MapperUtility.Map<AddressCreateDto, Address>(
+                    orderCreateDto.DeliveryAddress
+                );
 
                 // Create the order with mapped addresses
                 var order = new Order
@@ -149,7 +210,7 @@ namespace Transport_Management_Systems_Portal_Order_Service_REST_API.Controllers
                     ShipmentAddress = shipmentAddress,
                     DeliveryAddress = deliveryAddress,
                     CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
+                    UpdatedAt = DateTime.UtcNow,
                 };
 
                 // Map and add shipments with their pieces
@@ -161,7 +222,7 @@ namespace Transport_Management_Systems_Portal_Order_Service_REST_API.Controllers
                         {
                             Id = Guid.NewGuid(),
                             OrderId = order.Id,
-                            Pieces = new List<Piece>()
+                            Pieces = new List<Piece>(),
                         };
 
                         // Map and add pieces to the shipment
@@ -190,7 +251,10 @@ namespace Transport_Management_Systems_Portal_Order_Service_REST_API.Controllers
 
         [HttpPatch("{orderId}")]
         [Authorize(Roles = "shipper")]
-        public async Task<ActionResult<OrderReadDto>> PatchOrder(Guid orderId, [FromBody] OrderUpdateDto orderUpdateDto)
+        public async Task<ActionResult<OrderReadDto>> PatchOrder(
+            Guid orderId,
+            [FromBody] OrderUpdateDto orderUpdateDto
+        )
         {
             if (orderUpdateDto == null)
             {
@@ -209,11 +273,17 @@ namespace Transport_Management_Systems_Portal_Order_Service_REST_API.Controllers
 
             var orderReadDto = MapperUtility.Map<Order, OrderReadDto>(orderToUpdate);
             if (orderToUpdate.Client != null)
-                orderReadDto.Client = MapperUtility.Map<Client, ClientReadDto>(orderToUpdate.Client);
+                orderReadDto.Client = MapperUtility.Map<Client, ClientReadDto>(
+                    orderToUpdate.Client
+                );
             if (orderToUpdate.ShipmentAddress != null)
-                orderReadDto.ShipmentAddress = MapperUtility.Map<Address, AddressReadDto>(orderToUpdate.ShipmentAddress);
+                orderReadDto.ShipmentAddress = MapperUtility.Map<Address, AddressReadDto>(
+                    orderToUpdate.ShipmentAddress
+                );
             if (orderToUpdate.DeliveryAddress != null)
-                orderReadDto.DeliveryAddress = MapperUtility.Map<Address, AddressReadDto>(orderToUpdate.DeliveryAddress);
+                orderReadDto.DeliveryAddress = MapperUtility.Map<Address, AddressReadDto>(
+                    orderToUpdate.DeliveryAddress
+                );
 
             return Ok(orderReadDto);
         }
@@ -233,16 +303,18 @@ namespace Transport_Management_Systems_Portal_Order_Service_REST_API.Controllers
             if (id.ToString() == "")
             {
                 return BadRequest("The order ID is missing! Please try again with an order ID");
-            } else
+            }
+            else
             {
                 var order = await _repo.GetOrderById(id);
 
-                if(order != null)
+                if (order != null)
                 {
                     var orderReadDto = MapperUtility.Map<Order, OrderReadDto>(order);
 
                     return Ok(orderReadDto);
-                } else
+                }
+                else
                 {
                     return NotFound("The order ID does not exists!");
                 }
@@ -265,17 +337,24 @@ namespace Transport_Management_Systems_Portal_Order_Service_REST_API.Controllers
                     if (deletionStatus)
                     {
                         return NoContent();
-                    } else
-                    {
-                        return Ok("The order cannot be deleted due to some database transaction issues! Check again in the logs");
                     }
-                } else
-                {
-                    return NotFound("The order cannot be found!"); 
+                    else
+                    {
+                        return Ok(
+                            "The order cannot be deleted due to some database transaction issues! Check again in the logs"
+                        );
+                    }
                 }
-            } else
+                else
+                {
+                    return NotFound("The order cannot be found!");
+                }
+            }
+            else
             {
-                return BadRequest("No order ID passed! Please pass or provide the order ID for deletion process to begin");
+                return BadRequest(
+                    "No order ID passed! Please pass or provide the order ID for deletion process to begin"
+                );
             }
         }
 
@@ -294,7 +373,8 @@ namespace Transport_Management_Systems_Portal_Order_Service_REST_API.Controllers
                 );
 
                 return Ok(new { objectKey, fileName = file.FileName });
-            } else
+            }
+            else
             {
                 return BadRequest("There's no file for shipment order attached!");
             }
@@ -304,10 +384,13 @@ namespace Transport_Management_Systems_Portal_Order_Service_REST_API.Controllers
         [Authorize(Roles = "shipper")]
         public async Task<ActionResult> ListUploadedDocuments(string orderId)
         {
-            if(orderId.Length == 0 || orderId.Equals(""))
+            if (orderId.Length == 0 || orderId.Equals(""))
             {
-                return BadRequest("The shipment order ID has not been supplied. Please provide it again");
-            } else
+                return BadRequest(
+                    "The shipment order ID has not been supplied. Please provide it again"
+                );
+            }
+            else
             {
                 return Ok(await _documentStorage.ListOrderDocumentsAsync(orderId));
             }
@@ -319,24 +402,38 @@ namespace Transport_Management_Systems_Portal_Order_Service_REST_API.Controllers
         {
             if (objectKey.Length == 0 || objectKey.Equals(""))
             {
-                return BadRequest("The object key of the document intended to be downloaded is required!");
-            } else
+                return BadRequest(
+                    "The object key of the document intended to be downloaded is required!"
+                );
+            }
+            else
             {
                 var stream = await _documentStorage.DownloadDocumentAsync(objectKey);
                 return File(stream, "application/octet-stream");
             }
         }
-        
+
         [HttpGet("generate-presigned-url/{objectKey}")]
         [Authorize(Roles = "shipper")]
-        public async Task<ActionResult> GeneratePresignedURL(string objectKey, [FromQuery] int expiryMinutes = 60)
+        public async Task<ActionResult> GeneratePresignedURL(
+            string objectKey,
+            [FromQuery] int expiryMinutes = 60
+        )
         {
             if (objectKey.Length == 0 || objectKey.Equals(""))
             {
-                return BadRequest("The object key of the document intended to be downloaded is required!");
-            } else
+                return BadRequest(
+                    "The object key of the document intended to be downloaded is required!"
+                );
+            }
+            else
             {
-                return Ok(new { url = await _documentStorage.GetPresignedUrlAsync(objectKey, expiryMinutes) });
+                return Ok(
+                    new
+                    {
+                        url = await _documentStorage.GetPresignedUrlAsync(objectKey, expiryMinutes),
+                    }
+                );
             }
         }
 
@@ -346,8 +443,11 @@ namespace Transport_Management_Systems_Portal_Order_Service_REST_API.Controllers
         {
             if (objectKey.Length == 0 || objectKey.Equals(""))
             {
-                return BadRequest("The object key of the document intended to be downloaded is required!");
-            } else
+                return BadRequest(
+                    "The object key of the document intended to be downloaded is required!"
+                );
+            }
+            else
             {
                 await _documentStorage.DeleteDocumentAsync(objectKey);
                 return NoContent();
