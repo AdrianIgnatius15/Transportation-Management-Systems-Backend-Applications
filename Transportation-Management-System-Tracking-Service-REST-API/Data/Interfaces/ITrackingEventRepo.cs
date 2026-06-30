@@ -4,7 +4,7 @@ namespace Transportation_Management_System_Tracking_Service_REST_API.Data.Interf
 {
     public interface ITrackingEventRepo
     {
-        Task AddEventAsync(Guid orderId, TrackingEvent trackingEvent);
+        Task<TrackingEvent> AddEventAsync(Guid orderId, TrackingEvent trackingEvent);
 
         Task<IEnumerable<TrackingEvent>> GetTrackingEventHistoryAsync(Guid orderId);
 
