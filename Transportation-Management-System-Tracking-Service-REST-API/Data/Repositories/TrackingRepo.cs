@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Transportation_Management_System_Tracking_Service_REST_API.Data.Interfaces;
+using Transportation_Management_System_Tracking_Service_REST_API.DTOs;
 using Transportation_Management_System_Tracking_Service_REST_API.Models;
 using Transportation_Management_System_Tracking_Service_REST_API.Models.Enums;
 
@@ -14,10 +15,25 @@ namespace Transportation_Management_System_Tracking_Service_REST_API.Data.Reposi
             _dbContext = dbContext;
         }
 
-        public async Task<TrackingEvent> AddEventAsync(Guid orderId, TrackingEvent trackingEvent)
+        public async Task<TrackingEvent> AddEventAsync(
+            Guid orderId,
+            TrackingEventCreateDto trackingEvent
+        )
         {
-            var trackingEventToBeSaved = await _dbContext.TrackingEvents.AddAsync(trackingEvent);
-            return trackingEventToBeSaved.Entity;
+            var trackingEventToBeSaved = new TrackingEvent
+            {
+                OrderId = orderId,
+                EventType = trackingEvent.EventType,
+                Description = trackingEvent.Description,
+                Latitude = trackingEvent.Latitude,
+                Longitude = trackingEvent.Longitude,
+                Timestamp = DateTime.UtcNow,
+            };
+
+            var savedTrackingEvent = await _dbContext.TrackingEvents.AddAsync(
+                trackingEventToBeSaved
+            );
+            return savedTrackingEvent.Entity;
         }
 
         public async Task<TrackingEvent?> GetLatestPositionAsync(Guid orderId) =>

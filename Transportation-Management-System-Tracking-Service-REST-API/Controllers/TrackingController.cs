@@ -2,12 +2,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Transportation_Management_System_Tracking_Service_REST_API.Data.Interfaces;
 using Transportation_Management_System_Tracking_Service_REST_API.DTOs;
-using Transportation_Management_System_Tracking_Service_REST_API.DTOs.MQ;
+using Transportation_Management_System_Tracking_Service_REST_API.DTOs.Events;
 using Transportation_Management_System_Tracking_Service_REST_API.Middlewares.Interfaces;
-using Transportation_Management_System_Tracking_Service_REST_API.Models;
 using Transportation_Management_System_Tracking_Service_REST_API.Models.Enums;
 using Transportation_Management_System_Tracking_Service_REST_API.SignalRControllers;
-using Transportation_Management_System_Tracking_Service_REST_API.Utilities;
 
 namespace Transportation_Management_System_Tracking_Service_REST_API.Controllers
 {
@@ -30,15 +28,13 @@ namespace Transportation_Management_System_Tracking_Service_REST_API.Controllers
             _hub = hub;
         }
 
+        [HttpPost("{orderId:guid}/event")]
         public async Task<ActionResult> LogEvent(
             Guid orderId,
             [FromBody] TrackingEventCreateDto createDto
         )
         {
-            var trackingEventEntity = MapperUtility.Map<TrackingEventCreateDto, TrackingEvent>(
-                createDto
-            );
-            var trackingEvent = await _repo.AddEventAsync(orderId, trackingEventEntity);
+            var trackingEvent = await _repo.AddEventAsync(orderId, createDto);
             bool savedStatus = await _repo.SaveChangesAsync();
 
             if (savedStatus)
@@ -54,6 +50,8 @@ namespace Transportation_Management_System_Tracking_Service_REST_API.Controllers
                             orderId,
                             createDto.EventType,
                             createDto.Description,
+                            createDto.Latitude,
+                            createDto.Longitude,
                             trackingEvent.Timestamp
                         )
                     );

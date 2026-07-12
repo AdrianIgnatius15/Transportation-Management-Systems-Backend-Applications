@@ -18,12 +18,17 @@ namespace Transportation_Management_System_Tracking_Service_REST_API.Middlewares
         {
             var connection = await _mQConnection.GetConnectionAsync();
             using var channel = await connection.CreateChannelAsync();
-            await channel.QueueDeclareAsync(queue: "orders", durable: true, exclusive: false, autoDelete: false);
+            await channel.QueueDeclareAsync(
+                queue: "tracking.events", 
+                durable: true, 
+                exclusive: false, 
+                autoDelete: false
+            );
 
             var messageToSend = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(message));
             await channel.BasicPublishAsync(
                 exchange: string.Empty,
-                routingKey: "orders",
+                routingKey: "tracking.events",
                 mandatory: true,
                 body: messageToSend
             );

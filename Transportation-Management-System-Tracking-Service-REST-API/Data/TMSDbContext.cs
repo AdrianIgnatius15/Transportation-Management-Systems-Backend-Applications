@@ -10,19 +10,6 @@ namespace Transportation_Management_System_Tracking_Service_REST_API.Data
 
         }
 
-
-        public DbSet<Document> Documents { get; set; } = null!;
-
-        public DbSet<Address> Addresses { get; set; } = null!;
-
-        public DbSet<Client> Clients { get; set; } = null!;
-
-        public DbSet<Order> Orders { get; set; } = null!;
-
-        public DbSet<Shipment> Shipments { get; set; } = null!;
-
-        public DbSet<Piece> Pieces { get; set; } = null!;
-
         public DbSet<TrackingEvent> TrackingEvents { get; set; } = null!;
     }
 }
