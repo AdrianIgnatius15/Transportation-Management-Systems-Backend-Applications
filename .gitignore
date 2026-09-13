@@ -9,3 +9,4 @@ tms-file-storage-data
 //Files to ignore
 appsettings.Development.json
 *.sln
+Transportation-Management-Systems-Document-Service-REST-API/src/main/resources/application.properties
