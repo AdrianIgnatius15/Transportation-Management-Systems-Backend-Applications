@@ -9,9 +9,10 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import java.util.UUID
 
 @RestController
-@RequestMapping("/order")
+@RequestMapping("api/order")
 class OrderController(private val orderRepositoryService: OrderRepositoryService) {
 
     @GetMapping("/paginate/orders")
@@ -25,6 +26,26 @@ class OrderController(private val orderRepositoryService: OrderRepositoryService
         val pageable = PageRequest.of(page, safeSize, Sort.by(direction, sortBy))
 
         val orderSliced = orderRepositoryService.getAllOrdersPaginated(pageable)
+
+        return PageResponse(
+            orderSliced.content,
+            orderSliced.number,
+            orderSliced.size,
+            orderSliced.hasNext()
+        )
+    }
+    
+    @GetMapping("/paginate-cursor/orders")
+    fun getAllOrdersCursorPaginated(
+        @RequestParam(required = false) cursor: UUID?,
+        @RequestParam(defaultValue = "0") size: Int,
+        @RequestParam(defaultValue = "createdAt") sortBy: String,
+        @RequestParam(defaultValue = "ASC") direction: Sort.Direction
+    ): PageResponse<Order> {
+        val safeSize = size.coerceAtMost(100)
+        val pageable = PageRequest.of(0, safeSize, Sort.by(direction, sortBy))
+
+        val orderSliced = orderRepositoryService.getAllOrdersCursorPagination(cursor, pageable)
 
         return PageResponse(
             orderSliced.content,
