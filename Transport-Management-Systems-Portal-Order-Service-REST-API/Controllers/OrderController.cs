@@ -27,7 +27,8 @@ namespace Transport_Management_Systems_Portal_Order_Service_REST_API.Controllers
         }
 
         [HttpGet("emailPagination")]
-        [Authorize(Roles = "shipper")]
+        // [Authorize(Roles = "shipper")]
+        [Authorize(Policy = "ShipperOrApiKey")]
         public async Task<ActionResult<PaginatedResult<OrderReadDto>>> GetAllOrdersByClientEmail(
             [FromQuery] PaginationOrderSearchParameters parameters
         )
@@ -84,7 +85,8 @@ namespace Transport_Management_Systems_Portal_Order_Service_REST_API.Controllers
         }
 
         [HttpGet("all/shipperid")]
-        [Authorize(Roles = "shipper,receiver")]
+        // [Authorize(Roles = "shipper,receiver")]
+        [Authorize(Policy = "ShipperOrReceiverOrApiKey")]
         public async Task<
             ActionResult<PaginatedResult<OrderReadDto>>
         > GetAllOrdersWithShipperIdPaginated([FromQuery] PaginationOrderSearchParameters parameters)
@@ -140,7 +142,8 @@ namespace Transport_Management_Systems_Portal_Order_Service_REST_API.Controllers
         }
 
         [HttpPost("all")]
-        [Authorize(Roles = "shipper,receiver")]
+        // [Authorize(Roles = "shipper,receiver")]
+        [Authorize(Policy = "ShipperOrReceiverOrApiKey")]
         public async Task<ActionResult<PaginatedResult<OrderReadDto>>> GetAllOrders(
             [FromBody] PaginationParameters parameters
         )
@@ -171,7 +174,9 @@ namespace Transport_Management_Systems_Portal_Order_Service_REST_API.Controllers
         }
 
         [HttpPost("create")]
-        [Authorize(Roles = "shipper")]
+        // [Authorize(Roles = "shipper,receiver")]
+        [Authorize(Policy = "ShipperOrReceiverOrApiKey")]
+        // [Authorize(Policy = "ApiKeyOnly")] --> internal service to service only or for local development
         public async Task<ActionResult<string>> CreateOrder(
             [FromBody] OrderCreateDto orderCreateDto
         )
@@ -250,7 +255,8 @@ namespace Transport_Management_Systems_Portal_Order_Service_REST_API.Controllers
         }
 
         [HttpPatch("{orderId}")]
-        [Authorize(Roles = "shipper")]
+        // [Authorize(Roles = "shipper,receiver")]
+        [Authorize(Policy = "ShipperOrReceiverOrApiKey")]
         public async Task<ActionResult<OrderReadDto>> PatchOrder(
             Guid orderId,
             [FromBody] OrderUpdateDto orderUpdateDto
@@ -322,7 +328,8 @@ namespace Transport_Management_Systems_Portal_Order_Service_REST_API.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = "shipper")]
+        // [Authorize(Roles = "shipper,receiver")]
+        [Authorize(Policy = "ShipperOrReceiverOrApiKey")]
         public async Task<ActionResult> DeleteOrderById(Guid id)
         {
             if (id.ToString() != "")
@@ -359,7 +366,8 @@ namespace Transport_Management_Systems_Portal_Order_Service_REST_API.Controllers
         }
 
         [HttpPost("upload/{orderId}")]
-        [Authorize(Roles = "shipper")]
+        // [Authorize(Roles = "shipper,receiver")]
+        [Authorize(Policy = "ShipperOrReceiverOrApiKey")]
         public async Task<ActionResult> UploadDocument(string orderId, IFormFile file)
         {
             if (file.Length != 0)
@@ -381,7 +389,8 @@ namespace Transport_Management_Systems_Portal_Order_Service_REST_API.Controllers
         }
 
         [HttpGet("list-documents/{orderId}")]
-        [Authorize(Roles = "shipper")]
+        // [Authorize(Roles = "shipper,receiver")]
+        [Authorize(Policy = "ShipperOrReceiverOrApiKey")]
         public async Task<ActionResult> ListUploadedDocuments(string orderId)
         {
             if (orderId.Length == 0 || orderId.Equals(""))
@@ -397,7 +406,8 @@ namespace Transport_Management_Systems_Portal_Order_Service_REST_API.Controllers
         }
 
         [HttpGet("download-documents/{objectKey}")]
-        [Authorize(Roles = "shipper")]
+        // [Authorize(Roles = "shipper,receiver")]
+        [Authorize(Policy = "ShipperOrReceiverOrApiKey")]
         public async Task<ActionResult> DownloadDocuments(string objectKey)
         {
             if (objectKey.Length == 0 || objectKey.Equals(""))
@@ -414,7 +424,8 @@ namespace Transport_Management_Systems_Portal_Order_Service_REST_API.Controllers
         }
 
         [HttpGet("generate-presigned-url/{objectKey}")]
-        [Authorize(Roles = "shipper")]
+        // [Authorize(Roles = "shipper,receiver")]
+        [Authorize(Policy = "ShipperOrReceiverOrApiKey")]
         public async Task<ActionResult> GeneratePresignedURL(
             string objectKey,
             [FromQuery] int expiryMinutes = 60
@@ -438,7 +449,8 @@ namespace Transport_Management_Systems_Portal_Order_Service_REST_API.Controllers
         }
 
         [HttpDelete("delete-documents/{objectKey}")]
-        [Authorize(Roles = "shipper")]
+        // [Authorize(Roles = "shipper,receiver")]
+        [Authorize(Policy = "ShipperOrReceiverOrApiKey")]
         public async Task<ActionResult> DeleteDocuments(string objectKey)
         {
             if (objectKey.Length == 0 || objectKey.Equals(""))

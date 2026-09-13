@@ -15,6 +15,12 @@ using Transport_Management_Systems_Portal_Order_Service_REST_API.Services.Config
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Keycloak / JWT authentication
+var keycloakSection = builder.Configuration.GetSection("Keycloak");
+var authority = keycloakSection.GetValue<string>("Authority");
+var clientId = keycloakSection.GetValue<string>("ClientId");
+var requireHttps = keycloakSection.GetValue<bool?>("RequireHttpsMetadata") ?? true;
+
 // Add services to the container.
 // builder.Services.AddDbContext<TMSDbContext>(options => options.UseMySql(
 //     builder.Configuration.GetConnectionString("TMS-Database"),
@@ -64,12 +70,6 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Keycloak / JWT authentication
-var keycloakSection = builder.Configuration.GetSection("Keycloak");
-var authority = keycloakSection.GetValue<string>("Authority");
-var clientId = keycloakSection.GetValue<string>("ClientId");
-var requireHttps = keycloakSection.GetValue<bool?>("RequireHttpsMetadata") ?? true;
-
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -81,9 +81,41 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuer = true,
             RoleClaimType = ClaimTypes.Role
         };
+    })
+    .AddScheme<ApiKeyAuthenticationOptions, ApiKeyAuthenticationHandler>("ApiKey", options => 
+        options.ApiKey = builder.Configuration["ApiKey:Secret"] ?? ""
+    );
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("ApiKeyOnly", policy =>
+    {
+        policy.AddAuthenticationSchemes("ApiKey");
+        policy.RequireAuthenticatedUser();
     });
 
-builder.Services.AddAuthorization();
+    options.AddPolicy("ShipperOrApiKey", policy =>
+    {
+        policy.AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme, "ApiKey");
+        policy.RequireAuthenticatedUser();
+        policy.RequireAssertion(context => context.User?.Identity!.AuthenticationType == "ApiKey" || context.User!.IsInRole("shipper"));
+    });
+
+    options.AddPolicy("ReceiverOrApiKey", policy =>
+    {
+        policy.AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme, "ApiKey");
+        policy.RequireAuthenticatedUser();
+        policy.RequireAssertion(context => context.User?.Identity!.AuthenticationType == "ApiKey" || context.User!.IsInRole("receiver"));
+    });
+
+    options.AddPolicy("ShipperOrReceiverOrApiKey", policy =>
+    {
+        policy.AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme, "ApiKey");
+        policy.RequireAuthenticatedUser();
+        policy.RequireAssertion(context => 
+        context.User?.Identity!.AuthenticationType == "ApiKey" || context.User!.IsInRole("receiver") || context.User!.IsInRole("shipper"));
+    });
+});
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
