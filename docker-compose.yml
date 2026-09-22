@@ -9,10 +9,12 @@ services:
     environment:
       # Increased memory for the import process
       - JAVA_OPTS=-Xmx4g -Xms4g
-    command: >
-      --url https://download.geofabrik.de/north-america/us/california/socal-latest.osm.pbf
+    command: [
+      # --url https://download.geofabrik.de/north-america/us/california/socal-latest.osm.pbf
+      --input /data/socal-260917.osm.pbf
       --host 0.0.0.0
-    restart: always
+    ]
+    restart: unless-stopped
 
   keycloak:
     image: quay.io/keycloak/keycloak:latest
@@ -88,18 +90,20 @@ services:
       - ./tms-file-storage-data:/data
     command: >
       server
+      # -ip=192.168.1.6
       -dir=/data
       -s3
       -s3.port=8333
       -filer
       -filer.port=8888
       -master.port=9333
+      -volume.port=9340
     restart: unless-stopped
 
   rabbitmq:
     image: rabbitmq:management
     container_name: rabbitmq
-    hostname: tms-mq
+    hostname: localhost
     ports:
       - "5672:5672"   # RabbitMQ messaging port
       - "15672:15672" # RabbitMQ Management UI port (ADD THIS)
