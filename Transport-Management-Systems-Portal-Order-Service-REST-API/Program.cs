@@ -115,6 +115,14 @@ builder.Services.AddAuthorization(options =>
         policy.RequireAssertion(context => 
         context.User?.Identity!.AuthenticationType == "ApiKey" || context.User!.IsInRole("receiver") || context.User!.IsInRole("shipper"));
     });
+
+    options.AddPolicy("ShipperOrReceiverOrDriverOrApiKey", policy =>
+    {
+        policy.AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme, "ApiKey");
+        policy.RequireAuthenticatedUser();
+        policy.RequireAssertion(context => 
+        context.User?.Identity!.AuthenticationType == "ApiKey" || context.User!.IsInRole("receiver") || context.User!.IsInRole("shipper") || context.User!.IsInRole("driver"));
+    });
 });
 
 builder.Services.AddControllers()
