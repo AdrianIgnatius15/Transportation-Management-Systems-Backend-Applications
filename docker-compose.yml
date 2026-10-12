@@ -90,7 +90,6 @@ services:
       - ./tms-file-storage-data:/data
     command: >
       server
-      # -ip=192.168.1.6
       -dir=/data
       -s3
       -s3.port=8333
@@ -98,6 +97,7 @@ services:
       -filer.port=8888
       -master.port=9333
       -volume.port=9340
+      # -ip=127.0.0.1
     restart: unless-stopped
 
   rabbitmq:
