@@ -31,7 +31,7 @@ builder.Services.AddDbContext<TMSDbContext>(options => options.UseNpgsql(
 ));
 builder.Services.Configure<DocumentStorageSettings>(builder.Configuration.GetSection("SeaweedFS"));
 
-builder.Services.AddSingleton<IRabbitMQConnection, RabbitMQConnectionMiddleware>();
+// builder.Services.AddSingleton<IRabbitMQConnection, RabbitMQConnectionMiddleware>();
 builder.Services.AddSingleton<IAmazonS3>(_ =>
 {
     // var settings = builder.Configuration.GetSection("SeaweedFS").Get<DocumentStorageSettings>()!;
@@ -55,7 +55,7 @@ builder.Services.AddTransient<IClaimsTransformation, KeycloakRoleTransformer>();
 builder.Services.AddScoped<IOrderRepo, OrderRepo>();
 builder.Services.AddScoped<IAddressRepo, AddressRepo>();
 builder.Services.AddScoped<IClientRepo, ClientRepo>();
-builder.Services.AddScoped<IMQProducer, MqProducer>();
+// builder.Services.AddScoped<IMQProducer, MqProducer>();
 builder.Services.AddScoped<IDocumentStorageService, DocumentStorageService>();
 
 // CORS for Angular front-end (adjust origin as needed)
@@ -82,46 +82,44 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             RoleClaimType = ClaimTypes.Role
         };
     })
-    .AddScheme<ApiKeyAuthenticationOptions, ApiKeyAuthenticationHandler>("ApiKey", options => 
-        options.ApiKey = builder.Configuration["ApiKey:Secret"] ?? ""
-    );
+    .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("BasicAuth", null);
 
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("ApiKeyOnly", policy =>
+    options.AddPolicy("BasicAuthOnly", policy =>
     {
-        policy.AddAuthenticationSchemes("ApiKey");
+        policy.AddAuthenticationSchemes("BasicAuth");
         policy.RequireAuthenticatedUser();
     });
 
-    options.AddPolicy("ShipperOrApiKey", policy =>
+    options.AddPolicy("ShipperOrBasicAuth", policy =>
     {
-        policy.AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme, "ApiKey");
+        policy.AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme, "BasicAuth");
         policy.RequireAuthenticatedUser();
-        policy.RequireAssertion(context => context.User?.Identity!.AuthenticationType == "ApiKey" || context.User!.IsInRole("shipper"));
+        policy.RequireAssertion(context => context.User?.Identity!.AuthenticationType == "BasicAuth" || context.User!.IsInRole("shipper"));
     });
 
-    options.AddPolicy("ReceiverOrApiKey", policy =>
+    options.AddPolicy("ReceiverOrBasicAuth", policy =>
     {
-        policy.AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme, "ApiKey");
+        policy.AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme, "BasicAuth");
         policy.RequireAuthenticatedUser();
-        policy.RequireAssertion(context => context.User?.Identity!.AuthenticationType == "ApiKey" || context.User!.IsInRole("receiver"));
+        policy.RequireAssertion(context => context.User?.Identity!.AuthenticationType == "BasicAuth" || context.User!.IsInRole("receiver"));
     });
 
-    options.AddPolicy("ShipperOrReceiverOrApiKey", policy =>
+    options.AddPolicy("ShipperOrReceiverOrBasicAuth", policy =>
     {
-        policy.AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme, "ApiKey");
+        policy.AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme, "BasicAuth");
         policy.RequireAuthenticatedUser();
-        policy.RequireAssertion(context => 
-        context.User?.Identity!.AuthenticationType == "ApiKey" || context.User!.IsInRole("receiver") || context.User!.IsInRole("shipper"));
+        policy.RequireAssertion(context =>
+        context.User?.Identity!.AuthenticationType == "BasicAuth" || context.User!.IsInRole("receiver") || context.User!.IsInRole("shipper"));
     });
 
-    options.AddPolicy("ShipperOrReceiverOrDriverOrApiKey", policy =>
+    options.AddPolicy("ShipperOrReceiverOrDriverOrBasicAuth", policy =>
     {
-        policy.AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme, "ApiKey");
+        policy.AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme, "BasicAuth");
         policy.RequireAuthenticatedUser();
-        policy.RequireAssertion(context => 
-        context.User?.Identity!.AuthenticationType == "ApiKey" || context.User!.IsInRole("receiver") || context.User!.IsInRole("shipper") || context.User!.IsInRole("driver"));
+        policy.RequireAssertion(context =>
+        context.User?.Identity!.AuthenticationType == "BasicAuth" || context.User!.IsInRole("receiver") || context.User!.IsInRole("shipper") || context.User!.IsInRole("driver"));
     });
 });
 
@@ -144,6 +142,8 @@ if (app.Environment.IsDevelopment())
 // app.UseHttpsRedirection();
 
 app.UseCors();
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 
