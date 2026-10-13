@@ -31,7 +31,7 @@ builder.Services.AddDbContext<TMSDbContext>(options => options.UseNpgsql(
 ));
 builder.Services.Configure<DocumentStorageSettings>(builder.Configuration.GetSection("SeaweedFS"));
 
-// builder.Services.AddSingleton<IRabbitMQConnection, RabbitMQConnectionMiddleware>();
+builder.Services.AddSingleton<IRabbitMQConnection, RabbitMQConnectionMiddleware>();
 builder.Services.AddSingleton<IAmazonS3>(_ =>
 {
     // var settings = builder.Configuration.GetSection("SeaweedFS").Get<DocumentStorageSettings>()!;
@@ -55,7 +55,7 @@ builder.Services.AddTransient<IClaimsTransformation, KeycloakRoleTransformer>();
 builder.Services.AddScoped<IOrderRepo, OrderRepo>();
 builder.Services.AddScoped<IAddressRepo, AddressRepo>();
 builder.Services.AddScoped<IClientRepo, ClientRepo>();
-// builder.Services.AddScoped<IMQProducer, MqProducer>();
+builder.Services.AddScoped<IMQProducer, MqProducer>();
 builder.Services.AddScoped<IDocumentStorageService, DocumentStorageService>();
 
 // CORS for Angular front-end (adjust origin as needed)
