@@ -30,6 +30,8 @@ namespace Transport_Management_Systems_Portal_Order_Service_REST_API.Data.Reposi
         public async Task<PaginatedResult<Order>> GetAllOrdersWithPagination(PaginationParameters parameters)
         {
             var orders = await _dbContext.Orders
+                    .Include(order => order.ShipmentAddress)
+                    .Include(order => order.DeliveryAddress)
                 .Skip((parameters.PageNumber - 1) * parameters.PageSize)
                 .Take(parameters.PageSize)
                 .ToListAsync();

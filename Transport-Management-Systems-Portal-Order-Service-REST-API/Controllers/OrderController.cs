@@ -7,6 +7,7 @@ using Transport_Management_Systems_Portal_Order_Service_REST_API.DTOs.Client;
 using Transport_Management_Systems_Portal_Order_Service_REST_API.DTOs.Order;
 using Transport_Management_Systems_Portal_Order_Service_REST_API.DTOs.Pagination;
 using Transport_Management_Systems_Portal_Order_Service_REST_API.DTOs.Piece;
+using Transport_Management_Systems_Portal_Order_Service_REST_API.DTOs.Shipment;
 using Transport_Management_Systems_Portal_Order_Service_REST_API.Middlewares.Interfaces;
 using Transport_Management_Systems_Portal_Order_Service_REST_API.Models;
 using Transport_Management_Systems_Portal_Order_Service_REST_API.Service.Interface;
@@ -148,7 +149,7 @@ namespace Transport_Management_Systems_Portal_Order_Service_REST_API.Controllers
             }
         }
 
-        [HttpPost("all")]
+        [HttpPost("mobile")]
         // [Authorize(Roles = "shipper,receiver")]
         [Authorize(Policy = "ShipperOrReceiverOrDriverOrBasicAuth")]
         public async Task<ActionResult<PaginatedResult<OrderReadDto>>> GetAllOrders(
@@ -166,6 +167,24 @@ namespace Transport_Management_Systems_Portal_Order_Service_REST_API.Controllers
                 .Items.Select(order =>
                 {
                     var orderReadDto = MapperUtility.Map<Order, OrderReadDto>(order);
+                    if (order.ShipmentAddress != null)
+                        orderReadDto.ShipmentAddress = MapperUtility.Map<
+                            Address,
+                            AddressReadDto
+                        >(order.ShipmentAddress);
+                    if (order.DeliveryAddress != null)
+                        orderReadDto.DeliveryAddress = MapperUtility.Map<
+                            Address,
+                            AddressReadDto
+                        >(order.DeliveryAddress);
+                    if (order.Shipments != null && order.Shipments.Count > 0)
+                    {
+                        foreach (var shipment in order.Shipments)
+                        {
+                            orderReadDto.Shipments.Add(MapperUtility.Map<Shipment, ShipmentReadDto>(shipment));
+                        }
+                    }
+                        
                     return orderReadDto;
                 })
                 .ToList();
