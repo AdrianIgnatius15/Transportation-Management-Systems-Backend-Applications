@@ -11,7 +11,8 @@ services:
       - JAVA_OPTS=-Xmx4g -Xms4g
     command: [
       # --url https://download.geofabrik.de/north-america/us/california/socal-latest.osm.pbf
-      --input /data/socal-260917.osm.pbf
+      # --input /data/socal-260917.osm.pbf
+      --url https://download.geofabrik.de/north-america/us/california/socal-latest.osm.pbf
       --host 0.0.0.0
     ]
     restart: unless-stopped
