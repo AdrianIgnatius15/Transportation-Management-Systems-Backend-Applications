@@ -8,13 +8,12 @@ services:
       - ./graphhopper_data:/data
     environment:
       # Increased memory for the import process
-      - JAVA_OPTS=-Xmx4g -Xms4g
-    command: [
-      # --url https://download.geofabrik.de/north-america/us/california/socal-latest.osm.pbf
       # --input /data/socal-260917.osm.pbf
-      --url https://download.geofabrik.de/north-america/us/california/socal-latest.osm.pbf
+      # --url https://download.geofabrik.de/north-america/us/california/socal-latest.osm.pbf
+      - JAVA_OPTS=-Xmx4g -Xms4g
+    command: >
+      --input /data/socal-261014.osm.pbf
       --host 0.0.0.0
-    ]
     restart: unless-stopped
 
   keycloak:
