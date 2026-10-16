@@ -22,16 +22,19 @@ namespace Transport_Management_Systems_Portal_Order_Service_REST_API.Controllers
         private readonly IOrderRepo _repo;
         private readonly IDocumentStorageService _documentStorage;
         private readonly IMQProducer _msgQueueProducer;
+        private readonly ILogger _logger;
 
         public OrderController(
             IOrderRepo repo,
             IDocumentStorageService documentStorage,
-            IMQProducer msgQueueProducer
+            IMQProducer msgQueueProducer,
+            ILogger logger
         )
         {
             _repo = repo;
             _documentStorage = documentStorage;
             _msgQueueProducer = msgQueueProducer;
+            _logger = logger;
         }
 
         [HttpGet("emailPagination")]
@@ -156,6 +159,7 @@ namespace Transport_Management_Systems_Portal_Order_Service_REST_API.Controllers
             [FromBody] PaginationParameters parameters
         )
         {
+            _logger.LogInformation("Beginning of the REST API endpoint call");
             if (parameters == null)
             {
                 parameters = new PaginationParameters();
