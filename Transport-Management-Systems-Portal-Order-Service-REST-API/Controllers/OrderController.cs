@@ -22,13 +22,13 @@ namespace Transport_Management_Systems_Portal_Order_Service_REST_API.Controllers
         private readonly IOrderRepo _repo;
         private readonly IDocumentStorageService _documentStorage;
         private readonly IMQProducer _msgQueueProducer;
-        private readonly ILogger _logger;
+        private readonly ILogger<OrderController> _logger;
 
         public OrderController(
             IOrderRepo repo,
             IDocumentStorageService documentStorage,
             IMQProducer msgQueueProducer,
-            ILogger logger
+            ILogger<OrderController> logger
         )
         {
             _repo = repo;
