@@ -42,6 +42,7 @@ namespace Transport_Management_Systems_Portal_Order_Service_REST_API.Middlewares
                     string password = credentials[1];
 
                     if (username == _configuration["ApiCredentials:Username"] && password == _configuration["ApiCredentials:Password"])
+                        Console.WriteLine("ApiCredentials", _configuration["ApiCredentials:Username"]);
                     {
                         var claims = new Claim[]
                         {
@@ -56,8 +57,6 @@ namespace Transport_Management_Systems_Portal_Order_Service_REST_API.Middlewares
 
                         return AuthenticateResult.Success(ticket);
                     }
-
-                    return AuthenticateResult.Fail("Invalid Username or Password");
                 }
                 catch (Exception ex)
                 {
