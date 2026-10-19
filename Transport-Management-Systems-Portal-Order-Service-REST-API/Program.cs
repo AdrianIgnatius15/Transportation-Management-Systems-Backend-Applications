@@ -79,6 +79,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             ValidateAudience = false,
             ValidateIssuer = true,
+            ValidIssuers = new string[]
+            {
+                "http://localhost:8080/realms/transportation-management-system",
+                "http://10.0.2.2:8080/realms/transportation-management-system"
+            },
             RoleClaimType = ClaimTypes.Role
         };
     })
