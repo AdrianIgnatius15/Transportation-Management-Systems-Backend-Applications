@@ -188,7 +188,7 @@ namespace Transport_Management_Systems_Portal_Order_Service_REST_API.Controllers
                             orderReadDto.Shipments.Add(MapperUtility.Map<Shipment, ShipmentReadDto>(shipment));
                         }
                     }
-                        
+
                     return orderReadDto;
                 })
                 .ToList();
@@ -347,6 +347,14 @@ namespace Transport_Management_Systems_Portal_Order_Service_REST_API.Controllers
                 if (order != null)
                 {
                     var orderReadDto = MapperUtility.Map<Order, OrderReadDto>(order);
+                    if (order.DeliveryAddress != null)
+                    {
+                        orderReadDto.DeliveryAddress = MapperUtility.Map<Address, AddressReadDto>(order.DeliveryAddress);
+                    }
+                    if (order.ShipmentAddress != null)
+                    {
+                        orderReadDto.ShipmentAddress = MapperUtility.Map<Address, AddressReadDto>(order.ShipmentAddress);
+                    }
 
                     return Ok(orderReadDto);
                 }
