@@ -1,4 +1,16 @@
 services:
+  order-service-rest-api:
+    image: adrianjoseph15/transportation-management-system-order-service-rest-api-application
+    container_name: order-service-rest-api
+    ports:
+      - "5230:5230"
+    environment:
+      ASPNETCORE_URLS: http://+:5230
+      ASPNETCORE_ENVIRONMENT: Development
+      # ConnectionStrings__TMS-Database: "Host=timescaledb;Port=5432;Database=tms;Username=tms;Password=dev@4322"
+      SeaweedFS__ServiceURL: http://seaweedfs:8333
+      RabbitMQ__HostName: rabbitmq
+      
   graphhopper:
     image: israelhikingmap/graphhopper:latest
     container_name: graphhopper
