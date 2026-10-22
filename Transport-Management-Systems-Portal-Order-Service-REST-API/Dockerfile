@@ -3,6 +3,10 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build-env
 WORKDIR /app
 
+# Expose HTTP & HTTPS port
+EXPOSE 5230
+EXPOSE 5231
+
 # Copy the .csproj and restore dependencies (install libraries)
 COPY *.csproj ./
 RUN dotnet restore
@@ -19,9 +23,6 @@ WORKDIR /app
 
 # Copy the build artifacts from the previous stage
 COPY --from=build-env /app/out .
-
-# Expose the default port to run
-EXPOSE 8080
 
 # Start the application
 ENTRYPOINT [ "dotnet", "Transport-Management-Systems-Portal-Order-Service-REST-API.dll" ]
