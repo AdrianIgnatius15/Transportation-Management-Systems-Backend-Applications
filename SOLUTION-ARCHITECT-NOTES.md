@@ -62,3 +62,87 @@ Before testing from a physical device:
 Android may also block cleartext HTTP depending on the app's target SDK and network security configuration. If HTTP is enabled for local testing, restrict that setting to the development build; otherwise, use HTTPS with a certificate trusted by the Android device.
 
 This setup is intended for local development over a trusted network. Do not expose development services or credentials to an untrusted network or use this HTTP configuration in production.
+
+### 3. Timescale Database Backup & Replicate
+
+To replicate the data inside the database especially the actual data of this TMS system, heed the following instructions:
+
+```sql
+-- CHANGE THIS LINE (At the very bottom of your script):
+ALTER TABLE ONLY tms."TrackingEvents" ADD CONSTRAINT "FK_TrackingEvents_Orders_OrderId" FOREIGN KEY ("OrderId") REFERENCES tms."Orders"("Id") ON DELETE CASCADE;
+
+-- TO THIS (Simply remove the word ONLY):
+ALTER TABLE tms."TrackingEvents" ADD CONSTRAINT "FK_TrackingEvents_Orders_OrderId" FOREIGN KEY ("OrderId") REFERENCES tms."Orders"("Id") ON DELETE CASCADE;
+```
+
+Removed the backup SQL files `ONLY` keyword in the SQL file in order for this file to be executed in the Docker image.
+
+Re-push your fully synchronized script file back into the container's storage layer and stream it directly into your database client:
+
+```pwsh
+docker cp ./tms_backup_clean.sql postgres-timescale-database:/tmp/tms_backup_clean.sql
+docker exec -it postgres-timescale-database psql -U tms -d tms -f /tmp/tms_backup_clean.sql
+```
+
+Then, finally convert the `TrackingEvents` table into a Hypertable with the Docker CLI command below:
+
+```pwsh
+docker exec -it postgres-timescale-database psql -U tms -d tms
+```
+
+Then in the interactive command itself, run the following SQL statement to turn it hypertable:
+
+```sql
+SELECT create_hypertable('tms."TrackingEvents"', 'Timestamp');
+```
+
+And to exit the interactive console in Docker CLI, just run the command below:
+
+```pwsh
+\q
+```
+
+## Building Images of Applications Like ISO files
+
+### 1. Order Service REST API
+
+Docker images are like ISO files which contains the needed build binaries which will then run in a light-weighted way. The physical servers that runs these images normally "virtualizes" it's physical CPU, RAM and memory. To containerize Order Service REST API, here's the Dockerfile code snippet:
+
+```Dockerfile
+# First stage: Build & Publish the App
+# Use the SDK image to compile the project code
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build-env
+WORKDIR /app
+
+# Expose HTTP & HTTPS port
+EXPOSE 5230
+EXPOSE 5231
+
+# Copy the .csproj and restore dependencies (install libraries)
+COPY *.csproj ./
+RUN dotnet restore
+
+# Copy everything else and build the release
+COPY . ./
+RUN dotnet publish -c Release -o out
+
+# Stage 2: Runtime
+# Use the small ASP.NET Core runtime image to run the production compiled code
+## This stage becomes your final image, not the first stage as it's abandoned when it has completed.
+FROM mcr.microsoft.com/dotnet/aspnet:10.0
+WORKDIR /app
+
+# Copy the build artifacts from the previous stage
+COPY --from=build-env /app/out .
+
+# Start the application
+ENTRYPOINT [ "dotnet", "Transport-Management-Systems-Portal-Order-Service-REST-API.dll" ]
+```
+
+And the commands in order to build and run:
+
+```pwsh
+docker build --tag <docker-username>/<whatever-your-application-name-you-wish-to-name> .
+```
+
+**\*Important**: the `.` represents the current directory of which the Dockerfile is and the Docker command prompts to run.
