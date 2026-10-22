@@ -8,4 +8,5 @@ tms-file-storage-data
 
 //Files to ignore
 appsettings.Development.json
+appsettings.Staging.json
 *.sln
