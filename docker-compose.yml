@@ -33,7 +33,7 @@ services:
       # --url https://download.geofabrik.de/north-america/us/california/socal-latest.osm.pbf
       - JAVA_OPTS=-Xmx4g -Xms4g
     command: >
-      --input /data/socal-261014.osm.pbf
+      --url https://download.geofabrik.de/north-america/us/california/socal-latest.osm.pbf
       --host 0.0.0.0
     restart: unless-stopped
 
