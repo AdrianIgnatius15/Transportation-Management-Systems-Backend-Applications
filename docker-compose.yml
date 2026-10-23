@@ -1,4 +1,13 @@
 services:
+  tms-customer-portal:
+    image: adrianjoseph15/transportation-management-system-customer-portal-application:latest
+    container_name: tms-customer-portal
+    ports:
+      - "4200:4200"
+    environment:
+      - REST_API_BASE_URL=http://localhost:8080/api
+      - APP_NAME=TMS
+
   order-service-rest-api:
     image: adrianjoseph15/transportation-management-system-order-service-rest-api-application
     container_name: order-service-rest-api
