@@ -355,12 +355,16 @@ namespace Transport_Management_Systems_Portal_Order_Service_REST_API.Controllers
                     {
                         orderReadDto.ShipmentAddress = MapperUtility.Map<Address, AddressReadDto>(order.ShipmentAddress);
                     }
-                    if (order.Shipments != null & order.Shipments!.Count > 0)
+                    if (order.Shipments != null && order.Shipments.Count > 0)
                     {
                         Console.WriteLine("Shipments", order.Shipments);
                         foreach (var shipment in order.Shipments)
                         {
-                            orderReadDto.Shipments.Append(MapperUtility.Map<Shipment, ShipmentReadDto>(shipment));
+                            var shipmentReadDto = MapperUtility.Map<Shipment, ShipmentReadDto>(shipment);
+
+                            shipmentReadDto.Pieces = [.. shipment.Pieces.Select(piece => MapperUtility.Map<Piece, PieceReadDto>(piece))];
+
+                            orderReadDto.Shipments.Add(shipmentReadDto);
                         }
                     }
 
