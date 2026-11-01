@@ -13,6 +13,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
+import software.amazon.awssdk.services.s3.model.S3Exception
 import software.amazon.awssdk.services.s3.presigner.S3Presigner
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest
 import java.time.Duration
@@ -70,14 +71,23 @@ class StorageService(
         orderId: String,
         fileBytes: ByteArray,
         contentType: String = "application/octet-stream"
-    ) {
+    ): Boolean {
         val putObjectRequest = PutObjectRequest.builder()
             .bucket(bucketName)
             .key("$orderId/$fileKey")
             .contentType(contentType)
             .build()
 
-        s3Client.putObject(putObjectRequest, RequestBody.fromBytes(fileBytes))
+        return try {
+            s3Client.putObject(putObjectRequest, RequestBody.fromBytes(fileBytes))
+            true
+        } catch (e: S3Exception) {
+            logger.error { "$TAG Error occured on SeaweedFS due to ${e.message}" }
+            false
+        } catch (e: Exception) {
+            logger.error { "$TAG Error when checking for the document in SeaweedFS due to ${e.message}" }
+            false
+        }
     }
 
     fun deleteShipmentDocument(fileKey: String, orderId: String) {
