@@ -39,6 +39,8 @@ namespace Transport_Management_Systems_Portal_Order_Service_REST_API.Models
 
         public ICollection<Shipment> Shipments { get; set; } = new List<Shipment>();
 
+        public ICollection<Document>? Documents { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime UpdatedAt { get; set; }
