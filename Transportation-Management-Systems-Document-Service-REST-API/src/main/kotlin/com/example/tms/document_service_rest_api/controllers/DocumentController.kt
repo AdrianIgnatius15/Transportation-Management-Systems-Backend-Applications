@@ -1,16 +1,66 @@
 package com.example.tms.document_service_rest_api.controllers
 
 import com.example.tms.document_service_rest_api.repositories.services.OrderRepositoryService
+import com.example.tms.document_service_rest_api.services.StorageService
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.multipart.MultipartFile
+import software.amazon.awssdk.core.Response
 
 @RestController
 @RequestMapping("api/document")
-class DocumentController(private val orderRepository: OrderRepositoryService) {
+class DocumentController(
+    private val orderRepository: OrderRepositoryService,
+    private val storageService: StorageService
+) {
     @PostMapping("upload/{orderId}")
-    fun uploadShipmentDocument(@PathVariable("orderId") orderId: String) {
-        
+    fun uploadShipmentDocument(
+        @PathVariable("orderId") orderId: String,
+        @RequestParam("file") file: MultipartFile
+    ): ResponseEntity<Map<String, String>> {
+        val fileKey = file.originalFilename ?: "unnamed_${orderId}_${System.currentTimeMillis()}"
+        val contentType = file.contentType ?: "application/octet-stream"
+
+        storageService.uploadShipmentDocuments(
+            fileKey = fileKey,
+            orderId = orderId,
+            fileBytes = file.bytes,
+            contentType = contentType
+        )
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+            mapOf("message" to "Document uploaded successfully", "path" to "$orderId/$fileKey")
+        )
+    }
+
+    @GetMapping("/download-url")
+    fun getPresignedDownloadUrl(
+        @RequestParam("fileKey") fileKey: String,
+        @RequestParam(value = "expiresIn", defaultValue = "10") expiresIn: Long
+    ): ResponseEntity<Map<String, String>> {
+        val url = storageService.generatePresignedDownloadUrl(fileKey, expiresIn)
+        return ResponseEntity.ok(mapOf("url" to url))
+    }
+
+    @DeleteMapping("/delete-file/{orderId}/{fileName}")
+    fun deleteMapping(
+        @PathVariable("orderId") orderId: String,
+        @PathVariable("fileName") fileKey: String
+    ): ResponseEntity<Map<String, String>> {
+        storageService.deleteShipmentDocument(
+            fileKey = fileKey,
+            orderId = orderId
+        )
+
+        return ResponseEntity.status(HttpStatus.OK).body(
+            mapOf("message" to "Document deleted succesfully")
+        )
     }
 }
