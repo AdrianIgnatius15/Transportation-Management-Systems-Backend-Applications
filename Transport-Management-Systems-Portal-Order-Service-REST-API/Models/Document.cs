@@ -21,9 +21,6 @@ namespace Transport_Management_Systems_Portal_Order_Service_REST_API.Models
         [Required]
         public string FileName { get; set; } = default!;
 
-        [Required]
-        public string StorageUrl { get; set; } = default!;
-
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }
