@@ -20,28 +20,29 @@ class SeaweedFSConfig(
 ) {
     private val credentials = AwsBasicCredentials.create(accessKey, secretKey)
     private val s3Configuration = S3Configuration.builder().pathStyleAccessEnabled(true).build()
-    
+
     @Bean
     fun s3Presigner(): S3Presigner {
-        
+
         val s3Configuration = S3Configuration.builder()
             .pathStyleAccessEnabled(true)
             .build()
-            
+
         return S3Presigner.builder()
             .region(Region.of(region))
             .credentialsProvider(StaticCredentialsProvider.create(credentials))
             .endpointOverride(URI.create(internalEndpoint))
             .serviceConfiguration(s3Configuration)
-        .build()
+            .build()
     }
-    
+
+    @Bean
     fun s3Client(): S3Client {
         return S3Client.builder()
             .region(Region.of(region))
             .credentialsProvider(StaticCredentialsProvider.create(credentials))
             .endpointOverride(URI.create(internalEndpoint))
             .serviceConfiguration(s3Configuration)
-        .build()
+            .build()
     }
 }
