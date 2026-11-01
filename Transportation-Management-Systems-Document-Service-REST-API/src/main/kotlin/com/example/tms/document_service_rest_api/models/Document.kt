@@ -23,7 +23,7 @@ data class Document(
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "OrderId", nullable = false)
-    val orderId: UUID,
+    val order: Order,
 
     @Column(name = "Type")
     val documentType: DocumentType,
