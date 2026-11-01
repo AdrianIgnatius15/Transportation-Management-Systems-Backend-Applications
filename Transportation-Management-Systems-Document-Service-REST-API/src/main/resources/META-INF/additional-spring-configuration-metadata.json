@@ -1,0 +1,37 @@
+{"properties": [{
+  "name": "seaweedfs.access-key",
+  "type": "java.lang.String",
+  "description": "A description for 'seaweedfs.access-key'"
+}, {
+    "name": "seaweedfs.secret-key",
+  "type": "java.lang.String",
+  "description": "A description for 'seaweedfs.secret-key'"
+}, {
+     "name": "seaweedfs.region",
+  "type": "java.lang.String",
+  "description": "A description for 'seaweedfs.region'"
+}, {
+     "name": "seaweedfs.bucket-name",
+  "type": "java.lang.String",
+  "description": "A description for 'seaweedfs.bucket-name'"
+}, {
+    "name": "seaweedfs.internal-endpoint",
+  "type": "java.lang.String",
+  "description": "A description for 'seaweedfs.internal-endpoint'"
+}, {
+     "name": "seaweedfs.public-endpoint",
+  "type": "java.lang.String",
+  "description": "A description for 'seaweedfs.public-endpoint'"
+}, {
+    "name": "seaweedfs.filer.url",
+  "type": "java.lang.String",
+  "description": "A description for 'seaweedfs.filer.url'"
+}, {
+     "name": "cloud.aws.s3.endpoint",
+  "type": "java.lang.String",
+  "description": "A description for 'cloud.aws.s3.endpoint'"
+}, {
+    "name": "cloud.aws.region.static",
+  "type": "java.lang.String",
+  "description": "A description for 'cloud.aws.region.static'"
+}]}
