@@ -43,10 +43,19 @@ class DocumentController(
     @GetMapping("/download-url")
     fun getPresignedDownloadUrl(
         @RequestParam("fileKey") fileKey: String,
+        @RequestParam("orderId") orderId: String,
         @RequestParam(value = "expiresIn", defaultValue = "10") expiresIn: Long
     ): ResponseEntity<Map<String, String>> {
-        val url = storageService.generatePresignedDownloadUrl(fileKey, expiresIn)
-        return ResponseEntity.ok(mapOf("url" to url))
+        val documentExistsFlag = storageService.checkIfShipmentDocumentExists(orderId, fileKey)
+
+        if (documentExistsFlag) {
+            val url = storageService.generatePresignedDownloadUrl("$orderId/$fileKey", expiresIn)
+            return ResponseEntity.ok(mapOf("url" to url))
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                mapOf("message" to "The document searched does not exists")
+            )
+        }
     }
 
     @DeleteMapping("/delete-file/{orderId}/{fileName}")
