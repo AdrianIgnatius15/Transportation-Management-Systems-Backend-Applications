@@ -1,5 +1,6 @@
 package com.example.tms.document_service_rest_api.services
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.http.MediaType
@@ -9,6 +10,8 @@ import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest
 import software.amazon.awssdk.services.s3.model.GetObjectRequest
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
 import software.amazon.awssdk.services.s3.presigner.S3Presigner
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest
@@ -25,6 +28,28 @@ class StorageService(
     private val fileUrl: String
 ) {
 
+    companion object {
+        private val TAG = StorageService::class.java.name
+        private val logger = KotlinLogging.logger {}
+    }
+
+    fun checkIfShipmentDocumentExists(orderId: String, fileKey: String): Boolean {
+        val documentHeadObject = HeadObjectRequest.builder()
+            .bucket(bucketName)
+            .key("$orderId/$fileKey")
+            .build()
+
+        return try {
+            s3Client.headObject(documentHeadObject)
+            true
+        } catch (e: NoSuchKeyException) {
+            false
+        } catch (e: Exception) {
+            logger.error { "$TAG Error when checking for the document in SeaweedFS due to ${e.message}" }
+            false
+        }
+    }
+
     fun generatePresignedDownloadUrl(fileKey: String, durationMinutes: Long = 10): String {
         val getObjectRequest = GetObjectRequest.builder()
             .bucket("tms-documents")
@@ -37,7 +62,7 @@ class StorageService(
             .build()
 
         val presignedUrl = s3Presigner.presignGetObject(presignedRequest).url().toString()
-        return presignedUrl.replace(internalEndpoint, fileUrl)
+        return presignedUrl.replace(internalEndpoint, publicEndpoint)
     }
 
     fun uploadShipmentDocuments(
