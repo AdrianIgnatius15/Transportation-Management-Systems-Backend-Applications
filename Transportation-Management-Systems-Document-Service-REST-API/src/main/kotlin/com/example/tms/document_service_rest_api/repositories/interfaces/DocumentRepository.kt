@@ -10,7 +10,7 @@ interface DocumentRepository : CrudRepository<Document, UUID> {
     @Query(
         """
         SELECT documents FROM Documents documents 
-        WHERE documents.orderId = :orderId
+        WHERE documents.order.id = :orderId
         ORDER BY documents.id ASC
     """
     )

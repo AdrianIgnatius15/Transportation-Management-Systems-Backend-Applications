@@ -1,18 +1,23 @@
 package com.example.tms.document_service_rest_api.repositories.services
 
 import com.example.tms.document_service_rest_api.models.Document
+import com.example.tms.document_service_rest_api.models.Order
 import com.example.tms.document_service_rest_api.models.enums.DocumentType
 import com.example.tms.document_service_rest_api.repositories.interfaces.DocumentRepository
+import jakarta.persistence.EntityManager
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.util.Date
 import java.util.UUID
 
 @Service
-class DocumentRepositoryService(private val documentRepository: DocumentRepository) {
+class DocumentRepositoryService(
+    private val documentRepository: DocumentRepository,
+    private val entityManager: EntityManager
+) {
     fun createDocument(orderId: UUID, documentType: DocumentType, fileName: String) {
         val document = Document(
-            orderId = orderId,
+            order = entityManager.getReference(Order::class.java, orderId),
             documentType = documentType,
             fileName = fileName,
             createdAt = Date()
