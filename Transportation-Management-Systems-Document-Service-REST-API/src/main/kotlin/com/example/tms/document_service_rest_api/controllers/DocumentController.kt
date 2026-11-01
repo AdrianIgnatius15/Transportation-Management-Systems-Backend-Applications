@@ -1,5 +1,8 @@
 package com.example.tms.document_service_rest_api.controllers
 
+import com.example.tms.document_service_rest_api.models.Document
+import com.example.tms.document_service_rest_api.models.enums.DocumentType
+import com.example.tms.document_service_rest_api.repositories.services.DocumentRepositoryService
 import com.example.tms.document_service_rest_api.repositories.services.OrderRepositoryService
 import com.example.tms.document_service_rest_api.services.StorageService
 import org.springframework.http.HttpStatus
@@ -13,11 +16,13 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
 import software.amazon.awssdk.core.Response
+import java.util.UUID
 
 @RestController
 @RequestMapping("api/document")
 class DocumentController(
     private val orderRepository: OrderRepositoryService,
+    private val documentRepository: DocumentRepositoryService,
     private val storageService: StorageService
 ) {
     @PostMapping("upload/{orderId}")
@@ -28,16 +33,28 @@ class DocumentController(
         val fileKey = file.originalFilename ?: "unnamed_${orderId}_${System.currentTimeMillis()}"
         val contentType = file.contentType ?: "application/octet-stream"
 
-        storageService.uploadShipmentDocuments(
+        val uploadedFileStatus = storageService.uploadShipmentDocuments(
             fileKey = fileKey,
             orderId = orderId,
             fileBytes = file.bytes,
             contentType = contentType
         )
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(
-            mapOf("message" to "Document uploaded successfully", "path" to "$orderId/$fileKey")
-        )
+        if (uploadedFileStatus) {
+            documentRepository.createDocument(
+                UUID.fromString(orderId),
+                DocumentType.Waybill,
+                fileKey
+            )
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(
+                mapOf("message" to "Document uploaded successfully", "path" to "$orderId/$fileKey")
+            )
+        } else {
+            return ResponseEntity.status(HttpStatus.CREATED).body(
+                mapOf("message" to "Document did not uploaded successfully")
+            )
+        }
     }
 
     @GetMapping("/download-url")
