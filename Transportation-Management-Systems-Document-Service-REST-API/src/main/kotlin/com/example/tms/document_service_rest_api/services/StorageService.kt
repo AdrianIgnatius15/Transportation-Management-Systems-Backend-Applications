@@ -4,7 +4,9 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.http.MediaType
 import org.springframework.web.client.RestClient
+import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.services.s3.S3Client
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest
 import software.amazon.awssdk.services.s3.model.GetObjectRequest
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
 import software.amazon.awssdk.services.s3.presigner.S3Presigner
@@ -20,28 +22,43 @@ class StorageService(
     @Value($$"${seaweedfs.filer.url}")
     private val fileUrl: String
 ) {
-    
-    fun retrieveShipmentDocuments() {}
-    
+
     fun generatePresignedDownloadUrl(fileKey: String, durationMinutes: Long = 10): String {
         val getObjectRequest = GetObjectRequest.builder()
-         .bucket("tms-documents")
-         .key(fileKey)
-         .build()
-         
+            .bucket("tms-documents")
+            .key(fileKey)
+            .build()
+
         val presignedRequest = GetObjectPresignRequest.builder()
             .signatureDuration(Duration.ofMinutes(durationMinutes))
             .getObjectRequest(getObjectRequest)
-        .build()
-        
+            .build()
+
         val presignedUrl = s3Presigner.presignGetObject(presignedRequest).url().toString()
         return presignedUrl.replace(internalEndpoint, fileUrl)
     }
-    
-    fun uploadShipmentDocuments(fileKey: String, orderId: String, fileBytes: ByteArray, contentType: String = "application/octet-stream") {
+
+    fun uploadShipmentDocuments(
+        fileKey: String,
+        orderId: String,
+        fileBytes: ByteArray,
+        contentType: String = "application/octet-stream"
+    ) {
         val putObjectRequest = PutObjectRequest.builder()
             .bucket(bucketName)
             .key("$orderId/$fileKey")
-            .contentType
+            .contentType(contentType)
+            .build()
+
+        s3Client.putObject(putObjectRequest, RequestBody.fromBytes(fileBytes))
+    }
+
+    fun deleteShipmentDocument(fileKey: String, orderId: String) {
+        val deleteObjectRequest = DeleteObjectRequest.builder()
+            .bucket(bucketName)
+            .key("$orderId/$fileKey")
+            .build()
+
+        s3Client.deleteObject(deleteObjectRequest)
     }
 }
