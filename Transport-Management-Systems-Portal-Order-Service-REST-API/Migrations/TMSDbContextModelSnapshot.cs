@@ -236,7 +236,7 @@ namespace Transport_Management_Systems_Portal_Order_Service_REST_API.Migrations
             modelBuilder.Entity("Transport_Management_Systems_Portal_Order_Service_REST_API.Models.Document", b =>
                 {
                     b.HasOne("Transport_Management_Systems_Portal_Order_Service_REST_API.Models.Order", "Order")
-                        .WithMany()
+                        .WithMany("Documents")
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -311,6 +311,8 @@ namespace Transport_Management_Systems_Portal_Order_Service_REST_API.Migrations
 
             modelBuilder.Entity("Transport_Management_Systems_Portal_Order_Service_REST_API.Models.Order", b =>
                 {
+                    b.Navigation("Documents");
+
                     b.Navigation("Shipments");
                 });
 
