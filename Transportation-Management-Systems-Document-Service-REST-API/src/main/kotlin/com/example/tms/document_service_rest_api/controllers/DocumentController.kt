@@ -5,6 +5,8 @@ import com.example.tms.document_service_rest_api.models.enums.DocumentType
 import com.example.tms.document_service_rest_api.repositories.services.DocumentRepositoryService
 import com.example.tms.document_service_rest_api.repositories.services.OrderRepositoryService
 import com.example.tms.document_service_rest_api.services.StorageService
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -20,12 +22,17 @@ import java.util.UUID
 
 @RestController
 @RequestMapping("api/document")
+@Tag(name = "Document Management", description = "APIs for managing user records")
 class DocumentController(
     private val orderRepository: OrderRepositoryService,
     private val documentRepository: DocumentRepositoryService,
     private val storageService: StorageService
 ) {
     @PostMapping("upload/{orderId}")
+    @Operation(
+        summary = "Upload a shipment document by shipment order ID",
+        description = "Uploads a document into SeaweedFS and storing it on a folder with the folder name being the shipment order ID"
+    )
     fun uploadShipmentDocument(
         @PathVariable("orderId") orderId: String,
         @RequestParam("file") file: MultipartFile
@@ -58,6 +65,10 @@ class DocumentController(
     }
 
     @GetMapping("/download-url")
+    @Operation(
+        summary = "Gets the presigned URL of a shipment document",
+        description = "Retrieves the shipment document with a presigned URL to secure document access"
+    )
     fun getPresignedDownloadUrl(
         @RequestParam("fileKey") fileKey: String,
         @RequestParam("orderId") orderId: String,
@@ -76,6 +87,10 @@ class DocumentController(
     }
 
     @DeleteMapping("/delete-file/{orderId}/{fileName}")
+    @Operation(
+        summary = "Deletes a shipment document",
+        description = "Deletes a shipment document based on order ID as the folder's name where the document is stored"
+    )
     fun deleteMapping(
         @PathVariable("orderId") orderId: String,
         @PathVariable("fileName") fileKey: String
