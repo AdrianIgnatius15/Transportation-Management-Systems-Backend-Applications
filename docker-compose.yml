@@ -9,7 +9,7 @@ services:
       - APP_NAME=TMS
 
   order-service-rest-api:
-    image: adrianjoseph15/transportation-management-system-order-service-rest-api-application
+    image: adrianjoseph15/transportation-management-system-order-service-rest-api-application:latest
     container_name: order-service-rest-api
     ports:
       - "5230:5230"
@@ -19,6 +19,22 @@ services:
       # ConnectionStrings__TMS-Database: "Host=timescaledb;Port=5432;Database=tms;Username=tms;Password=dev@4322"
       SeaweedFS__ServiceURL: http://seaweedfs:8333
       RabbitMQ__HostName: rabbitmq
+
+  document-service-rest-api:
+    image: adrianjoseph15/transportation-management-system-document-service-rest-api-application:latest
+    container_name: document-service-rest-api
+    ports:
+      - "9000:9000"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://timescaledb:5432/tms
+      - SPRING_DATASOURCE_USERNAME=tms
+      - SPRING_DATASOURCE_PASSWORD=tms@2367
+      - SEAWEEDFS_ACCESS_KEY=admin
+      - SEAWEEDFS_SECRET_KEY=password123
+      - SEAWEEDFS_INTERNAL_ENDPOINT=http://seaweedfs:8333
+      - SEAWEEDFS_PUBLIC_ENDPOINT=http://seaweedfs:8333
+      - SEAWEEDFS_FILER_URL=http://seaweedfs:8888
+      - CLOUD_AWS_S3_ENDPOINT=http://seaweedfs:8333
       
   graphhopper:
     image: israelhikingmap/graphhopper:latest
