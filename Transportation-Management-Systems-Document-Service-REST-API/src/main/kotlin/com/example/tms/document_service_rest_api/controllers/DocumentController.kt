@@ -95,13 +95,20 @@ class DocumentController(
         @PathVariable("orderId") orderId: String,
         @PathVariable("fileName") fileKey: String
     ): ResponseEntity<Map<String, String>> {
-        storageService.deleteShipmentDocument(
+        val deletedDetails = storageService.deleteShipmentDocument(
             fileKey = fileKey,
             orderId = orderId
         )
 
+        if (deletedDetails.deleteMarker()) {
+            documentRepository.deleteDocumentsBasedOnOrderId(UUID.fromString(orderId))
+            return ResponseEntity.status(HttpStatus.OK).body(
+                mapOf("message" to "Document deleted succesfully")
+            )
+        }
+
         return ResponseEntity.status(HttpStatus.OK).body(
-            mapOf("message" to "Document deleted succesfully")
+            mapOf("message" to "Document did not delete succesfully")
         )
     }
 }
