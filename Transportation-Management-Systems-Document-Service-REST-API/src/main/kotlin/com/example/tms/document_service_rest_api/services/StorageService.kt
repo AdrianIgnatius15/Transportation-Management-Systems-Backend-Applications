@@ -9,6 +9,7 @@ import org.springframework.web.client.RestClient
 import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest
+import software.amazon.awssdk.services.s3.model.DeleteObjectResponse
 import software.amazon.awssdk.services.s3.model.GetObjectRequest
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException
@@ -90,12 +91,12 @@ class StorageService(
         }
     }
 
-    fun deleteShipmentDocument(fileKey: String, orderId: String) {
+    fun deleteShipmentDocument(fileKey: String, orderId: String): DeleteObjectResponse {
         val deleteObjectRequest = DeleteObjectRequest.builder()
             .bucket(bucketName)
             .key("$orderId/$fileKey")
             .build()
 
-        s3Client.deleteObject(deleteObjectRequest)
+        return s3Client.deleteObject(deleteObjectRequest)
     }
 }
