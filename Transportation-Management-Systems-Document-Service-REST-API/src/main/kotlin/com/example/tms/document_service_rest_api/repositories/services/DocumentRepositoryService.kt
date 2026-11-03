@@ -38,4 +38,8 @@ class DocumentRepositoryService(
     fun deleteDocument(id: UUID) {
         documentRepository.deleteById(id)
     }
+
+    fun deleteDocumentsBasedOnOrderId(orderId: UUID): Int {
+        return documentRepository.deleteDocumentsBasedOnOrderId(orderId)
+    }
 }
