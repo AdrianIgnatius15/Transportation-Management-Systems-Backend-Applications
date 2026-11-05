@@ -32,7 +32,7 @@ services:
       - SEAWEEDFS_ACCESS_KEY=admin
       - SEAWEEDFS_SECRET_KEY=password123
       - SEAWEEDFS_INTERNAL_ENDPOINT=http://seaweedfs:8333
-      - SEAWEEDFS_PUBLIC_ENDPOINT=http://seaweedfs:8333
+      - SEAWEEDFS_PUBLIC_ENDPOINT=http://localhost:8333
       - SEAWEEDFS_FILER_URL=http://seaweedfs:8888
       - CLOUD_AWS_S3_ENDPOINT=http://seaweedfs:8333
       
