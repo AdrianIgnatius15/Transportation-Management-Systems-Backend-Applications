@@ -22,4 +22,17 @@ interface DocumentRepository : CrudRepository<Document, UUID> {
     @Transactional
     @Query("DELETE FROM Documents documents WHERE documents.order.id = :orderId")
     fun deleteDocumentsBasedOnOrderId(@Param("orderId") orderId: UUID): Int
+
+    @Modifying
+    @Transactional
+    @Query(
+        """
+        DELETE FROM Documents documents WHERE documents.order.id = :orderId AND
+        documents.fileName = :fileName
+    """
+    )
+    fun deleteDocumentsBasedOnOrderIdAndFilename(
+        @Param("orderId") orderId: UUID,
+        @Param("fileName") fileName: String
+    ): Int
 }

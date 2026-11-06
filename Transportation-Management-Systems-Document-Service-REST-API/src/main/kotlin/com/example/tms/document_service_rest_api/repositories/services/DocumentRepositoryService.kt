@@ -42,4 +42,8 @@ class DocumentRepositoryService(
     fun deleteDocumentsBasedOnOrderId(orderId: UUID): Int {
         return documentRepository.deleteDocumentsBasedOnOrderId(orderId)
     }
+
+    fun deleteDocumentsBasedOnOrderIdAndFilename(orderId: UUID, fileName: String): Int {
+        return documentRepository.deleteDocumentsBasedOnOrderIdAndFilename(orderId, fileName)
+    }
 }
