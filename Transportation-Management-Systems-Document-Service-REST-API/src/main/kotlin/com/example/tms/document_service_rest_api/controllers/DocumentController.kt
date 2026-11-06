@@ -1,13 +1,10 @@
 package com.example.tms.document_service_rest_api.controllers
 
-import com.example.tms.document_service_rest_api.models.Document
-import com.example.tms.document_service_rest_api.models.enums.DocumentType
-import com.example.tms.document_service_rest_api.repositories.services.DocumentRepositoryService
-import com.example.tms.document_service_rest_api.repositories.services.OrderRepositoryService
 import com.example.tms.document_service_rest_api.services.StorageService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.HttpStatus
+import org.springframework.http.HttpStatusCode
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -24,8 +21,6 @@ import java.util.UUID
 @RequestMapping("api/document")
 @Tag(name = "Document Management", description = "APIs for managing user records")
 class DocumentController(
-    private val orderRepository: OrderRepositoryService,
-    private val documentRepository: DocumentRepositoryService,
     private val storageService: StorageService
 ) {
     @PostMapping("upload/{orderId}")
@@ -47,20 +42,42 @@ class DocumentController(
             contentType = contentType
         )
 
-        if (uploadedFileStatus) {
-            documentRepository.createDocument(
-                UUID.fromString(orderId),
-                DocumentType.Waybill,
-                fileKey
-            )
-
-            return ResponseEntity.status(HttpStatus.CREATED).body(
+        return if (uploadedFileStatus) {
+            ResponseEntity.status(HttpStatus.CREATED).body(
                 mapOf("message" to "Document uploaded successfully", "path" to "$orderId/$fileKey")
             )
         } else {
-            return ResponseEntity.status(HttpStatus.CREATED).body(
+            ResponseEntity.status(HttpStatus.CREATED).body(
                 mapOf("message" to "Document did not uploaded successfully")
             )
+        }
+    }
+
+    @PostMapping("/upload-shipment-files/{orderId}")
+    @Operation(
+        summary = "Upload a list of shipment document by shipment order ID",
+        description = "Uploads a list of shipment documents into SeaweedFS and storing it on a folder with the folder name being the shipment order ID"
+    )
+    fun uploadShipmentDocuments(
+        @PathVariable("orderId") orderId: String,
+        @RequestParam("files") files: List<MultipartFile>
+    ): ResponseEntity<Map<String, String>> {
+        if (files.isEmpty()) {
+            return ResponseEntity.badRequest().body(
+                mapOf("message" to "Shipment documents have not been passed succesfully. Please check again!")
+            )
+        } else {
+            val uploadedShipmentDocumentsStatus = storageService.uploadMultipartShipmentDocuments(orderId, files)
+
+            return if (uploadedShipmentDocumentsStatus) {
+                ResponseEntity.status(HttpStatus.CREATED).body(
+                    mapOf("message" to "All files uploaded successfully")
+                )
+            } else {
+                ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(
+                    mapOf("message" to "One or more files could not be uploaded")
+                )
+            }
         }
     }
 
@@ -91,7 +108,7 @@ class DocumentController(
         summary = "Deletes a shipment document",
         description = "Deletes a shipment document based on order ID as the folder's name where the document is stored"
     )
-    fun deleteMapping(
+    fun deleteADocumentBasedOnOrderIdAndFilename(
         @PathVariable("orderId") orderId: String,
         @PathVariable("fileName") fileKey: String
     ): ResponseEntity<Map<String, String>> {
@@ -100,8 +117,7 @@ class DocumentController(
             orderId = orderId
         )
 
-        if (deletedDetails.deleteMarker()) {
-            documentRepository.deleteDocumentsBasedOnOrderId(UUID.fromString(orderId))
+        if (deletedDetails) {
             return ResponseEntity.status(HttpStatus.OK).body(
                 mapOf("message" to "Document deleted succesfully")
             )
@@ -110,5 +126,22 @@ class DocumentController(
         return ResponseEntity.status(HttpStatus.OK).body(
             mapOf("message" to "Document did not delete succesfully")
         )
+    }
+
+    @DeleteMapping("/delete-files/{orderId}")
+    fun deleteAllDocumentsBasedOnOrderId(
+        @PathVariable("orderId") orderId: String
+    ): ResponseEntity<Map<String, String>> {
+        val deletedStatus = storageService.deleteAllShipmentDocumentsViaBucket(orderId)
+
+        return if (deletedStatus) {
+            ResponseEntity.status(HttpStatus.OK).body(
+                mapOf("message" to "The files for the $orderId together with the folder has been deleted successfully")
+            )
+        } else {
+            ResponseEntity.status(HttpStatus.HTTP_VERSION_NOT_SUPPORTED).body(
+                mapOf("message" to "Document did not delete succesfully")
+            )
+        }
     }
 }
