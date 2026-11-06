@@ -1,6 +1,7 @@
 package com.example.tms.document_service_rest_api.models
 
 import com.example.tms.document_service_rest_api.models.enums.DocumentType
+import com.fasterxml.jackson.annotation.JsonIgnore
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.FetchType
@@ -21,6 +22,7 @@ data class Document(
     @Column(name = "Id")
     val id: UUID? = null,
 
+    @get:JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "OrderId", nullable = false)
     val order: Order,
