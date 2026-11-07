@@ -33,8 +33,6 @@ class StorageService(
     private val s3Client: S3Client,
     private val s3Presigner: S3Presigner,
     @Value($$"${seaweedfs.bucket-name}") private val bucketName: String,
-    @Value($$"${seaweedfs.internal-endpoint}") private val internalEndpoint: String,
-    @Value($$"${seaweedfs.public-endpoint}") private val publicEndpoint: String,
     @Value($$"${seaweedfs.filer.url}")
     private val fileUrl: String,
     private val documentRepositoryService: DocumentRepositoryService
@@ -73,8 +71,7 @@ class StorageService(
             .getObjectRequest(getObjectRequest)
             .build()
 
-        val presignedUrl = s3Presigner.presignGetObject(presignedRequest).url().toString()
-        return presignedUrl.replace(internalEndpoint, publicEndpoint)
+        return s3Presigner.presignGetObject(presignedRequest).url().toString()
     }
 
     fun uploadShipmentDocuments(

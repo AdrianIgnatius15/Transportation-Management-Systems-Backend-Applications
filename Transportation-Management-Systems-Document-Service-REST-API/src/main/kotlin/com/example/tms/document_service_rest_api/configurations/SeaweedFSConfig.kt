@@ -16,7 +16,8 @@ class SeaweedFSConfig(
     @Value($$"${seaweedfs.access-key}") accessKey: String,
     @Value($$"${seaweedfs.secret-key}") secretKey: String,
     @Value($$"${seaweedfs.region}") private val region: String,
-    @Value($$"${seaweedfs.internal-endpoint}") private val internalEndpoint: String
+    @Value($$"${seaweedfs.internal-endpoint}") private val internalEndpoint: String,
+    @Value($$"${seaweedfs.public-endpoint}") private val publicEndpoint: String
 ) {
     private val credentials = AwsBasicCredentials.create(accessKey, secretKey)
     private val s3Configuration = S3Configuration.builder().pathStyleAccessEnabled(true).build()
@@ -31,7 +32,7 @@ class SeaweedFSConfig(
         return S3Presigner.builder()
             .region(Region.of(region))
             .credentialsProvider(StaticCredentialsProvider.create(credentials))
-            .endpointOverride(URI.create(internalEndpoint))
+            .endpointOverride(URI.create(publicEndpoint))
             .serviceConfiguration(s3Configuration)
             .build()
     }
