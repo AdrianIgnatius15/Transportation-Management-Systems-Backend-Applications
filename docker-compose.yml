@@ -31,6 +31,7 @@ services:
       - SPRING_DATASOURCE_PASSWORD=tms@2367
       - SEAWEEDFS_ACCESS_KEY=admin
       - SEAWEEDFS_SECRET_KEY=password123
+      - SEAWEEDFS_BUCKET_NAME=tms-documents
       - SEAWEEDFS_INTERNAL_ENDPOINT=http://seaweedfs:8333
       - SEAWEEDFS_PUBLIC_ENDPOINT=http://localhost:8333
       - SEAWEEDFS_FILER_URL=http://seaweedfs:8888
