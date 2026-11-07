@@ -64,7 +64,7 @@ class StorageService(
 
     fun generatePresignedDownloadUrl(fileKey: String, durationMinutes: Long = 10): String {
         val getObjectRequest = GetObjectRequest.builder()
-            .bucket("tms-documents")
+            .bucket(bucketName)
             .key(fileKey)
             .build()
 
