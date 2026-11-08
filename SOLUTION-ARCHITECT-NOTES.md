@@ -146,3 +146,37 @@ docker build --tag <docker-username>/<whatever-your-application-name-you-wish-to
 ```
 
 **\*Important**: the `.` represents the current directory of which the Dockerfile is and the Docker command prompts to run.
+
+## Event-Driven Architecture & Development
+
+This project also proves the need and it's implementation of event-driven architecture. In this scenario, the business case of this project is as of below:
+
+      ```txt
+      As user (typically the sales admin or the customer), logs in and creates an order that typically contains one to many amount of shipments
+      and each shipments has one to many amount of pieces. Each pieces contains the description & volumetric information.
+
+      After creation, the order is in the state of "CREATED". A driver/deliver logs into a mobile app and picks the order that he/she wants to
+      fulfil. After choosing or accepting the order shipment, he/she begins the navigation and heads to the destination from the origin of the order shipment. Each milestone (in this case, the specific status of the shipment is push down as status of the state "PICKUP", "DELIVERED") into a enterprise service bus or a message enqueue. The driver also receives notifications of the order shipment about documents uploaded by the shipper using the same medium.
+      ```
+
+As this business case warrants a real-time ingestion of crucial information of the order shipment status and document management, hence it's has been evaluated technically that a enterprise service bus or message queue is needed.
+
+### 1. Choosing RabbitMQ
+
+Support of RabbitMQ as light-weight option for now, is now prevalent accross the technical world, it has been evaluated and now being integrated to 3 REST APIs in this project, mainly "Order Service REST API", "Tracking Service REST API" & "Document Service REST API". Both will interact to have the order status & document status updated. Here's the RabbitMQ Docker image to spin up and begin with:
+
+      ```docker-compose.yml
+      rabbitmq:
+        image: rabbitmq:management
+        container_name: rabbitmq
+        hostname: localhost
+        ports:
+          - "5672:5672"   # RabbitMQ messaging port
+          - "15672:15672" # RabbitMQ Management UI port (ADD THIS)
+        environment:
+          - RABBITMQ_DEFAULT_USER=tms
+          - RABBITMQ_DEFAULT_PASS=tms123
+        volumes:
+          - ./rabbitmq/queue/data:/var/lib/rabbitmq
+          - ./rabbitmq/queue/log/:/var/log/rabbitmq
+      ```
