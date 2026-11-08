@@ -3,6 +3,7 @@ package com.example.tms.document_service_rest_api.services
 import com.example.tms.document_service_rest_api.models.enums.DocumentType
 import com.example.tms.document_service_rest_api.repositories.services.DocumentRepositoryService
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.springframework.amqp.rabbit.core.RabbitTemplate
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.http.MediaType
@@ -35,7 +36,8 @@ class StorageService(
     @Value($$"${seaweedfs.bucket-name}") private val bucketName: String,
     @Value($$"${seaweedfs.filer.url}")
     private val fileUrl: String,
-    private val documentRepositoryService: DocumentRepositoryService
+    private val documentRepositoryService: DocumentRepositoryService,
+    private val rabbitTemplate: RabbitTemplate
 ) {
 
     companion object {
