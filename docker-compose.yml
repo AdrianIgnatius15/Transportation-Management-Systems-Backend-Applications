@@ -29,6 +29,10 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://timescaledb:5432/tms
       - SPRING_DATASOURCE_USERNAME=tms
       - SPRING_DATASOURCE_PASSWORD=tms@2367
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=tms
+      - SPRING_RABBITMQ_PASSWORD=tms123
       - SEAWEEDFS_ACCESS_KEY=admin
       - SEAWEEDFS_SECRET_KEY=password123
       - SEAWEEDFS_BUCKET_NAME=tms-documents
