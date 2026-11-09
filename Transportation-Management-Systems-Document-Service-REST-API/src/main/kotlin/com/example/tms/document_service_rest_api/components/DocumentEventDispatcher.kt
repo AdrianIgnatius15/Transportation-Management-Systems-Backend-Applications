@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component
  */
 @Component
 class DocumentEventDispatcher(
-    @Qualifier("rabbitTemplate") private val rabbitTemplate: RabbitTemplate,
+    private val rabbitTemplate: RabbitTemplate,
     private val batchingRabbitTemplate: BatchingRabbitTemplate
 ) {
     fun dispatchSingleMessageToRabbitMQ(actionSubTopic: String, dataforQueue: TMSDocumentEvent) {
