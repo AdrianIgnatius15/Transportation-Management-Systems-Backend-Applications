@@ -1,21 +1,17 @@
 package com.example.tms.document_service_rest_api.services
 
+import com.example.tms.document_service_rest_api.components.DocumentEventDispatcher
 import com.example.tms.document_service_rest_api.models.enums.DocumentType
+import com.example.tms.document_service_rest_api.models.sealedmodels.DocumentCreatedEvent
 import com.example.tms.document_service_rest_api.repositories.services.DocumentRepositoryService
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.springframework.amqp.rabbit.core.RabbitTemplate
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.core.io.ByteArrayResource
-import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
-import org.springframework.web.client.RestClient
 import org.springframework.web.multipart.MultipartFile
 import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.model.Delete
-import software.amazon.awssdk.services.s3.model.DeleteBucketRequest
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest
-import software.amazon.awssdk.services.s3.model.DeleteObjectResponse
 import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest
 import software.amazon.awssdk.services.s3.model.GetObjectRequest
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest
@@ -37,7 +33,7 @@ class StorageService(
     @Value($$"${seaweedfs.filer.url}")
     private val fileUrl: String,
     private val documentRepositoryService: DocumentRepositoryService,
-    private val rabbitTemplate: RabbitTemplate
+    private val eventDispatcher: DocumentEventDispatcher
 ) {
 
     companion object {
@@ -121,6 +117,15 @@ class StorageService(
                 if (responseUploadStatus.sdkHttpResponse().isSuccessful) {
                     logger.debug { "The file is uploaded succesfully" }
                     documentRepositoryService.createDocument(UUID.fromString(orderId), DocumentType.Other, fileKey)
+
+                    eventDispatcher.dispatchSingleMessageToRabbitMQ(
+                        "created", DocumentCreatedEvent(
+                            orderId,
+                            fileKey,
+                            DocumentType.Other,
+                            file.size
+                        )
+                    )
                 } else {
                     logger.debug {
                         "The file didn't upload successfully due to ${
