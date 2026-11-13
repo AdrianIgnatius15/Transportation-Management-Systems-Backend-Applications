@@ -1,4 +1,4 @@
-using Amazon.Runtime.Documents;
+using Transport_Management_Systems_Portal_Order_Service_REST_API.Models.Enums;
 
 namespace Transport_Management_Systems_Portal_Order_Service_REST_API.Models.Messages
 {
