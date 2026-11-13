@@ -50,4 +50,24 @@
   "name": "spring.rabbitmq.password",
   "type": "java.lang.String",
   "description": "The RabbitMQ password"
+}, {
+  "name": "app.rabbitmq.queue",
+  "type": "java.lang.String",
+  "description": "The RabbitMQ queue name"
+}, {
+  "name": "app.rabbitmq.shipment.document.exchange.name",
+  "type": "java.lang.String",
+  "description": "The shipment document RabbitMQ exchange name"
+}, {
+  "name": "app.rabbitmq.shipment.document.routing.key",
+  "type": "java.lang.String",
+  "description": "The shipment document RabbitMQ routing key"
+}, {
+  "name": "app.rabbitmq.order.event.exchange.name",
+  "type": "java.lang.String",
+  "description": "The order event RabbitMQ exchange name"
+}, {
+  "name": "app.rabbitmq.order.event.routing.key",
+  "type": "java.lang.String",
+  "description": "The order event RabbitMQ routing key"
 }]}
