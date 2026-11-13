@@ -30,7 +30,7 @@ builder.Services.AddDbContext<TMSDbContext>(options => options.UseNpgsql(
     builder.Configuration.GetConnectionString("TMS-Database")
 ));
 builder.Services.Configure<DocumentStorageSettings>(builder.Configuration.GetSection("SeaweedFS"));
-
+builder.Services.AddHostedService<MqConsumer>();
 builder.Services.AddSingleton<IRabbitMQConnection, RabbitMQConnectionMiddleware>();
 builder.Services.AddSingleton<IAmazonS3>(_ =>
 {
