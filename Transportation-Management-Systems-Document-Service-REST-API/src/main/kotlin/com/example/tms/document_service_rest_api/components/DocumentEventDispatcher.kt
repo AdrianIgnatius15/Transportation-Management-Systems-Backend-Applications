@@ -4,7 +4,6 @@ import com.example.tms.document_service_rest_api.configurations.RabbitMQConfig
 import com.example.tms.document_service_rest_api.models.sealedmodels.TMSDocumentEvent
 import org.springframework.amqp.rabbit.core.BatchingRabbitTemplate
 import org.springframework.amqp.rabbit.core.RabbitTemplate
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 
 /**
@@ -26,7 +25,7 @@ class DocumentEventDispatcher(
         val specificRoutingKeyFor = "tms.document.$actionSubTopic"
 
         rabbitTemplate.convertAndSend(
-            RabbitMQConfig.EXCHANGE_NAME,
+            RabbitMQConfig.SHIPMENT_DOCUMENT_EXCHANGE_NAME,
             specificRoutingKeyFor,
             dataforQueue
         )
@@ -37,7 +36,7 @@ class DocumentEventDispatcher(
 
         multipleDataForQueue.forEach { event ->
             batchingRabbitTemplate.convertAndSend(
-                RabbitMQConfig.EXCHANGE_NAME,
+                RabbitMQConfig.SHIPMENT_DOCUMENT_EXCHANGE_NAME,
                 specificRoutingKeyFor,
                 event
             )
