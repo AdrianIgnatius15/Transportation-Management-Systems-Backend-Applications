@@ -7,5 +7,7 @@ namespace Transportation_Management_Systems_Portal_Order_Service_REST_API.Models
         public string OrderNumber { get; set; } = default!;
 
         public Guid Id { get; set; } = Guid.Empty;
+
+        public string OrderStatus { get; set; } = string.Empty;
     }
 }
