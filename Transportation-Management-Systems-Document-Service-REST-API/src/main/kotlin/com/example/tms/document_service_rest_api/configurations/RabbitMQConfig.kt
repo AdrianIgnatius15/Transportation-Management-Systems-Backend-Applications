@@ -5,10 +5,12 @@ import org.springframework.amqp.core.BindingBuilder
 import org.springframework.amqp.core.Queue
 import org.springframework.amqp.core.TopicExchange
 import org.springframework.amqp.rabbit.batch.SimpleBatchingStrategy
+import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory
 import org.springframework.amqp.rabbit.connection.ConnectionFactory
 import org.springframework.amqp.rabbit.core.BatchingRabbitTemplate
 import org.springframework.amqp.rabbit.core.RabbitTemplate
 import org.springframework.amqp.support.converter.JacksonJsonMessageConverter
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler
@@ -40,12 +42,18 @@ class RabbitMQConfig {
         return TopicExchange(ORDER_EVENT_EXCHANGE_NAME)
     }
 
-    fun orderEventBinding(queue: Queue, exchange: TopicExchange): Binding {
+    @Bean
+    fun orderEventBinding(
+        @Qualifier("queue") queue: Queue, @Qualifier("orderEventExchange") exchange: TopicExchange
+    ): Binding {
         return BindingBuilder.bind(queue).to(exchange).with(ORDER_EVENT_ROUTING_KEY)
     }
 
     @Bean
-    fun shipmentDocumentBinding(queue: Queue, exchange: TopicExchange): Binding {
+    fun shipmentDocumentBinding(
+        @Qualifier("queue") queue: Queue,
+        @Qualifier("shipmentDocumentExchange") exchange: TopicExchange
+    ): Binding {
         return BindingBuilder.bind(queue).to(exchange).with(SHIPMENT_DOCUMENT_ROUTING_KEY)
     }
 
@@ -82,5 +90,16 @@ class RabbitMQConfig {
         template.messageConverter = messageConverter()
 
         return template
+    }
+
+    @Bean
+    fun rabbitListenerContainerFactory(
+        connectionFactory: ConnectionFactory,
+        messageConverter: JacksonJsonMessageConverter
+    ): SimpleRabbitListenerContainerFactory {
+        return SimpleRabbitListenerContainerFactory().apply {
+            this.setConnectionFactory(connectionFactory)
+            this.setMessageConverter(messageConverter)
+        }
     }
 }
