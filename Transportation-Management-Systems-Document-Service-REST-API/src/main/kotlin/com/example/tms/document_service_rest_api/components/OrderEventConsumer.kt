@@ -1,5 +1,6 @@
 package com.example.tms.document_service_rest_api.components
 
+import com.example.tms.document_service_rest_api.configurations.RabbitMQConfig
 import com.example.tms.document_service_rest_api.models.messages.OrderCreatedEvent
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.amqp.rabbit.annotation.RabbitListener
@@ -12,7 +13,7 @@ class OrderEventConsumer {
         private val logger = KotlinLogging.logger { }
     }
 
-    @RabbitListener(queues = ["tms"])
+    @RabbitListener(queues = [RabbitMQConfig.TMS_ORDER_EVENT_QUEUE_NAME])
     fun receiveOrderEventMessages(message: OrderCreatedEvent) {
         logger.info {
             message.orderNumber + "received from MQ"
