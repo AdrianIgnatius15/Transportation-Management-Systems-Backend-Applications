@@ -10,6 +10,8 @@ using Transportation_Management_Systems_Portal_Order_Service_REST_API.DTOs.Piece
 using Transportation_Management_Systems_Portal_Order_Service_REST_API.DTOs.Shipment;
 using Transportation_Management_Systems_Portal_Order_Service_REST_API.Middlewares.Interfaces;
 using Transportation_Management_Systems_Portal_Order_Service_REST_API.Models;
+using Transportation_Management_Systems_Portal_Order_Service_REST_API.Models.Enums;
+using Transportation_Management_Systems_Portal_Order_Service_REST_API.Models.Messages;
 using Transportation_Management_Systems_Portal_Order_Service_REST_API.Service.Interface;
 using Transportation_Management_Systems_Portal_Order_Service_REST_API.Utilities;
 
@@ -278,7 +280,17 @@ namespace Transportation_Management_Systems_Portal_Order_Service_REST_API.Contro
 
                 // EF Core's change tracker will automatically track related entities
                 await _repo.CreateOrder(order);
-                await _repo.SaveChangesAsync();
+                if (await _repo.SaveChangesAsync())
+                {
+                    var orderCreatedEventMessage = new OrderCreatedEvent
+                    {
+                        ClientId = order.ClientId,
+                        Id = order.Id,
+                        OrderNumber = order.OrderNumber,
+                        OrderStatus = "CREATED"
+                    };
+                    await _msgQueueProducer.SendOrderCreatedEventMessage(orderCreatedEventMessage);
+                }
 
                 return CreatedAtAction(nameof(GetOrderById), new { id = order.Id }, order);
             }
