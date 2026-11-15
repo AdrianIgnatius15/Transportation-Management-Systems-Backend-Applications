@@ -3,6 +3,7 @@ using System.Text.Json;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using Transportation_Management_Systems_Portal_Order_Service_REST_API.Middlewares.Interfaces;
+using Transportation_Management_Systems_Portal_Order_Service_REST_API.Models.Config;
 using Transportation_Management_Systems_Portal_Order_Service_REST_API.Models.Messages;
 
 namespace Transportation_Management_Systems_Portal_Order_Service_REST_API.Middlewares
@@ -45,61 +46,7 @@ namespace Transportation_Management_Systems_Portal_Order_Service_REST_API.Middle
                     return;
                 }
 
-                for (int i = 0; i < bindingsArrayTopology.Count; i++)
-                {
-                    string exchangeName = _configuration[$"RabbitMqTopology:Bindings:{i}:ExchangeName"] ?? "";
-                    string queueName = _configuration[$"RabbitMqTopology:Bindings:{i}:QueueName"] ?? "";
-                    string routingKeyPattern = _configuration[$"RabbitMqTopology:Bindings:{i}:RoutingKeyPattern"] ?? "";
-
-                    if (string.IsNullOrEmpty(exchangeName) || string.IsNullOrEmpty(queueName))
-                    {
-                        _logger.LogWarning($"[AMQP CONFIG SKIP] Missing properties on index payload mapping sequence block: {i}");
-                        continue;
-                    }
-
-                    _logger.LogInformation($"[AMQP INITIALIZED] [Index {i}] -> Exchange: {exchangeName}, Queue: {queueName}, Routing Key: {routingKeyPattern}");
-
-                    // Declare topology infrastructure directly over the message broker channels
-                    await _channel.ExchangeDeclareAsync(exchangeName, ExchangeType.Topic, durable: true, cancellationToken: stoppingToken);
-                    await _channel.QueueDeclareAsync(queue: queueName, durable: true, exclusive: false, autoDelete: false, cancellationToken: stoppingToken);
-                    await _channel.QueueBindAsync(queueName, exchangeName, routingKeyPattern, cancellationToken: stoppingToken);
-
-                    var consumer = new AsyncEventingBasicConsumer(_channel);
-
-                    consumer.ReceivedAsync += async (model, ea) =>
-                    {
-                        var body = ea.Body.ToArray();
-                        var rawJsonMessage = Encoding.UTF8.GetString(body);
-
-                        try
-                        {
-                            using var jsonDoc = JsonDocument.Parse(rawJsonMessage);
-                            var root = jsonDoc.RootElement;
-
-                            if (root.TryGetProperty("eventType", out var eventTypeProp))
-                            {
-                                string eventType = eventTypeProp.GetString() ?? "UNKNOWN";
-                                _logger.LogInformation($"[AMQP EX-ROUTE] [{exchangeName}] Received context identifier: {eventType}");
-
-                                // Forward deserialization targeting into our shared polymorphic handler switcher matrix
-                                await RouteEventToSpecificHandlerAsync(eventType, rawJsonMessage);
-                            }
-
-                            // Explicitly acknowledge processing completion back onto the broker pipeline
-                            await _channel.BasicAckAsync(deliveryTag: ea.DeliveryTag, multiple: false, cancellationToken: stoppingToken);
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogError(ex, $"[AMQP PROCESSING FAIL] Failure handling payload inside exchange context: {exchangeName}");
-
-                            // Negative acknowledgement: Rolls back message onto the Docker queue safely
-                            await _channel.BasicNackAsync(deliveryTag: ea.DeliveryTag, multiple: false, requeue: true, cancellationToken: stoppingToken);
-                        }
-                    };
-
-                    string tag = await _channel.BasicConsumeAsync(queue: queueName, autoAck: false, consumer: consumer, cancellationToken: stoppingToken);
-                    _activeConsumerTags.Add(tag);
-                }
+                await InitializeMqConsumerListenerForShipmentDocuments(_channel, stoppingToken);
 
                 await Task.Delay(Timeout.Infinite, stoppingToken);
             }
@@ -111,6 +58,96 @@ namespace Transportation_Management_Systems_Portal_Order_Service_REST_API.Middle
             {
                 _logger.LogCritical(ex, "[AMQP FATAL] Crash event intercepted on the global background service channel engine.");
             }
+        }
+
+        private async Task InitializeMqConsumerListenerForShipmentDocuments(IChannel channel, CancellationToken stoppingToken)
+        {
+            var mqConfigList = _configuration.GetSection("RabbitMqTopology:Bindings").Get<List<RabbitMQConfig>>();
+            var shipmentDocumentMqConfig = mqConfigList?.FirstOrDefault(config => config.Id == "shipment-document");
+
+            await channel.ExchangeDeclareAsync("shipment.documents.exchange", ExchangeType.Topic, durable: true, cancellationToken: stoppingToken);
+            await channel.QueueDeclareAsync(queue: "tms", durable: true, exclusive: false, autoDelete: false, cancellationToken: stoppingToken);
+            await channel.QueueBindAsync("tms", "shipment.documents.exchange", "tms.document.#", cancellationToken: stoppingToken);
+
+            var consumer = new AsyncEventingBasicConsumer(channel);
+
+            consumer.ReceivedAsync += async (model, ea) =>
+            {
+                var body = ea.Body.ToArray();
+                var rawJsonMessage = Encoding.UTF8.GetString(body);
+
+                try
+                {
+                    using var jsonDoc = JsonDocument.Parse(rawJsonMessage);
+                    var root = jsonDoc.RootElement;
+
+                    if (root.TryGetProperty("eventType", out var eventTypeProp))
+                    {
+                        string eventType = eventTypeProp.GetString() ?? "UNKNOWN";
+                        _logger.LogInformation($"[AMQP EX-ROUTE] [{shipmentDocumentMqConfig?.ExchangeName ?? ""}] Received context identifier: {eventType}");
+
+                        // Forward deserialization targeting into our shared polymorphic handler switcher matrix
+                        await RouteEventToSpecificHandlerAsync(eventType, rawJsonMessage);
+                    }
+
+                    // Explicitly acknowledge processing completion back onto the broker pipeline
+                    await channel.BasicAckAsync(deliveryTag: ea.DeliveryTag, multiple: false, cancellationToken: stoppingToken);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"[AMQP PROCESSING FAIL] Failure handling payload inside exchange context: {shipmentDocumentMqConfig?.ExchangeName ?? ""}");
+
+                    // Negative acknowledgement: Rolls back message onto the Docker queue safely
+                    await channel.BasicNackAsync(deliveryTag: ea.DeliveryTag, multiple: false, requeue: true, cancellationToken: stoppingToken);
+                }
+            };
+
+            await channel.BasicConsumeAsync(queue: "tms", autoAck: false, consumer: consumer, cancellationToken: stoppingToken);
+        }
+
+        private async Task InitializeMqConsumerListenerForOrderEvents(IChannel channel, CancellationToken stoppingToken)
+        {
+            var mqConfigList = _configuration.GetSection("RabbitMqTopology:Bindings").Get<List<RabbitMQConfig>>();
+            var shipmentDocumentMqConfig = mqConfigList?.FirstOrDefault(config => config.Id == "order-shipment");
+
+            await channel.ExchangeDeclareAsync(shipmentDocumentMqConfig?.ExchangeName ?? "", ExchangeType.Topic, durable: true, cancellationToken: stoppingToken);
+            await channel.QueueDeclareAsync(queue: "tms", durable: true, exclusive: false, autoDelete: false, cancellationToken: stoppingToken);
+            await channel.QueueBindAsync("tms", shipmentDocumentMqConfig?.ExchangeName ?? "", shipmentDocumentMqConfig?.RoutingKeyPattern ?? "", cancellationToken: stoppingToken);
+
+            var consumer = new AsyncEventingBasicConsumer(channel);
+
+            consumer.ReceivedAsync += async (model, ea) =>
+            {
+                var body = ea.Body.ToArray();
+                var rawJsonMessage = Encoding.UTF8.GetString(body);
+
+                try
+                {
+                    using var jsonDoc = JsonDocument.Parse(rawJsonMessage);
+                    var root = jsonDoc.RootElement;
+
+                    if (root.TryGetProperty("eventType", out var eventTypeProp))
+                    {
+                        string eventType = eventTypeProp.GetString() ?? "UNKNOWN";
+                        _logger.LogInformation($"[AMQP EX-ROUTE] [{shipmentDocumentMqConfig?.ExchangeName ?? ""}] Received context identifier: {eventType}");
+
+                        // Forward deserialization targeting into our shared polymorphic handler switcher matrix
+                        await RouteEventToSpecificHandlerAsync(eventType, rawJsonMessage);
+                    }
+
+                    // Explicitly acknowledge processing completion back onto the broker pipeline
+                    await channel.BasicAckAsync(deliveryTag: ea.DeliveryTag, multiple: false, cancellationToken: stoppingToken);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"[AMQP PROCESSING FAIL] Failure handling payload inside exchange context: {shipmentDocumentMqConfig?.ExchangeName ?? ""}");
+
+                    // Negative acknowledgement: Rolls back message onto the Docker queue safely
+                    await channel.BasicNackAsync(deliveryTag: ea.DeliveryTag, multiple: false, requeue: true, cancellationToken: stoppingToken);
+                }
+            };
+
+            await channel.BasicConsumeAsync(queue: "tms", autoAck: false, consumer: consumer, cancellationToken: stoppingToken);
         }
 
         private async Task RouteEventToSpecificHandlerAsync(string eventType, string rawJson)

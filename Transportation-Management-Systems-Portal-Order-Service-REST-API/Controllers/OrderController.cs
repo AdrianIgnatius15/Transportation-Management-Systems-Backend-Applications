@@ -280,7 +280,9 @@ namespace Transportation_Management_Systems_Portal_Order_Service_REST_API.Contro
 
                 // EF Core's change tracker will automatically track related entities
                 await _repo.CreateOrder(order);
-                if (await _repo.SaveChangesAsync())
+                bool orderSaveStatus = await _repo.SaveChangesAsync();
+                Console.WriteLine($"Order saved {orderSaveStatus}");
+                if (orderSaveStatus)
                 {
                     var orderCreatedEventMessage = new OrderCreatedEvent
                     {

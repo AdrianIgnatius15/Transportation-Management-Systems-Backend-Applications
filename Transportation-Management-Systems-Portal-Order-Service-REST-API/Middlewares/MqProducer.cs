@@ -2,7 +2,6 @@ using System.Text;
 using System.Text.Json;
 using RabbitMQ.Client;
 using Transportation_Management_Systems_Portal_Order_Service_REST_API.Middlewares.Interfaces;
-using Transportation_Management_Systems_Portal_Order_Service_REST_API.Models.Config;
 
 namespace Transportation_Management_Systems_Portal_Order_Service_REST_API.Middlewares
 {
@@ -24,7 +23,7 @@ namespace Transportation_Management_Systems_Portal_Order_Service_REST_API.Middle
         {
             var connection = await _mQConnection.GetConnectionAsync();
             using var channel = await connection.CreateChannelAsync();
-            await channel.QueueDeclareAsync(queue: "orders", durable: true, exclusive: false, autoDelete: false);
+            await channel.QueueDeclareAsync(queue: "tms", durable: true, exclusive: false, autoDelete: false);
 
             var messageToSend = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(message));
             await channel.BasicPublishAsync(
@@ -39,18 +38,23 @@ namespace Transportation_Management_Systems_Portal_Order_Service_REST_API.Middle
         {
             var connection = await _mQConnection.GetConnectionAsync();
             using var channel = await connection.CreateChannelAsync();
-            var configMqList = _configuration.GetSection("RabbitMqTopology:Bindings").Get<List<RabbitMQConfig>>();
-
-            var configMq = configMqList?.FirstOrDefault(config => config.Id == "order-shipment");
-            await channel.QueueDeclareAsync(queue: configMq?.QueueName ?? "tms", durable: true, exclusive: false, autoDelete: false);
+            await channel.QueueDeclareAsync(queue: "tms-order", durable: true, exclusive: false, autoDelete: false);
 
             var messageToSend = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(orderCreatedEvent));
-            await channel.BasicPublishAsync(
-                exchange: string.Empty,
-                routingKey: configMq?.RoutingKeyPattern.Replace("#", "created") ?? "",
+            try
+            {
+                await channel.BasicPublishAsync(
+                exchange: "order.event.exchange",
+                routingKey: "order.event.created",
                 mandatory: true,
                 body: messageToSend
             );
+                Console.WriteLine("Message of order creation event sent!");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error when sending message for order creation due to {ex.Message}");
+            }
         }
     }
 }
