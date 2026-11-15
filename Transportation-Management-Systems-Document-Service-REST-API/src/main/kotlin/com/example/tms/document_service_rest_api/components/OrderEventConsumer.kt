@@ -17,5 +17,8 @@ class OrderEventConsumer {
         logger.info {
             message.orderNumber + "received from MQ"
         }
+        logger.info {
+            "The message event received from queue ${message.clientId}"
+        }
     }
 }
