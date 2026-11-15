@@ -1,6 +1,6 @@
 # First stage: Build & Publish the App
 # Use the SDK image to compile the project code
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build-env
+FROM mcr.microsoft.com/dotnet/sdk:11.0 AS build-env
 WORKDIR /app
 
 # Expose HTTP & HTTPS port
@@ -18,7 +18,7 @@ RUN dotnet publish -c Release -o out
 # Stage 2: Runtime
 # Use the small ASP.NET Core runtime image to run the production compiled code
 ## This stage becomes your final image, not the first stage as it's abandoned when it has completed.
-FROM mcr.microsoft.com/dotnet/aspnet:10.0
+FROM mcr.microsoft.com/dotnet/aspnet:11.0
 WORKDIR /app
 
 # Copy the build artifacts from the previous stage
