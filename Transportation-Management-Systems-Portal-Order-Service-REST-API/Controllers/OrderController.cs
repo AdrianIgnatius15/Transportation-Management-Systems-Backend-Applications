@@ -10,9 +10,7 @@ using Transportation_Management_Systems_Portal_Order_Service_REST_API.DTOs.Piece
 using Transportation_Management_Systems_Portal_Order_Service_REST_API.DTOs.Shipment;
 using Transportation_Management_Systems_Portal_Order_Service_REST_API.Middlewares.Interfaces;
 using Transportation_Management_Systems_Portal_Order_Service_REST_API.Models;
-using Transportation_Management_Systems_Portal_Order_Service_REST_API.Models.Enums;
 using Transportation_Management_Systems_Portal_Order_Service_REST_API.Models.Messages;
-using Transportation_Management_Systems_Portal_Order_Service_REST_API.Service.Interface;
 using Transportation_Management_Systems_Portal_Order_Service_REST_API.Utilities;
 
 namespace Transportation_Management_Systems_Portal_Order_Service_REST_API.Controllers
@@ -22,19 +20,16 @@ namespace Transportation_Management_Systems_Portal_Order_Service_REST_API.Contro
     public class OrderController : ControllerBase
     {
         private readonly IOrderRepo _repo;
-        private readonly IDocumentStorageService _documentStorage;
         private readonly IMQProducer _msgQueueProducer;
         private readonly ILogger<OrderController> _logger;
 
         public OrderController(
             IOrderRepo repo,
-            IDocumentStorageService documentStorage,
             IMQProducer msgQueueProducer,
             ILogger<OrderController> logger
         )
         {
             _repo = repo;
-            _documentStorage = documentStorage;
             _msgQueueProducer = msgQueueProducer;
             _logger = logger;
         }
@@ -426,107 +421,6 @@ namespace Transportation_Management_Systems_Portal_Order_Service_REST_API.Contro
                 return BadRequest(
                     "No order ID passed! Please pass or provide the order ID for deletion process to begin"
                 );
-            }
-        }
-
-        [HttpPost("upload/{orderId}")]
-        // [Authorize(Roles = "shipper,receiver")]
-        [Authorize(Policy = "ShipperOrReceiverOrBasicAuth")]
-        public async Task<ActionResult> UploadDocument(string orderId, IFormFile file)
-        {
-            if (file.Length != 0)
-            {
-                await using var stream = file.OpenReadStream();
-                var objectKey = await _documentStorage.UploadDocumentAsync(
-                    stream,
-                    file.FileName,
-                    file.ContentType,
-                    orderId
-                );
-
-                return Ok(new { objectKey, fileName = file.FileName });
-            }
-            else
-            {
-                return BadRequest("There's no file for shipment order attached!");
-            }
-        }
-
-        [HttpGet("list-documents/{orderId}")]
-        // [Authorize(Roles = "shipper,receiver")]
-        [Authorize(Policy = "ShipperOrReceiverOrBasicAuth")]
-        public async Task<ActionResult> ListUploadedDocuments(string orderId)
-        {
-            if (orderId.Length == 0 || orderId.Equals(""))
-            {
-                return BadRequest(
-                    "The shipment order ID has not been supplied. Please provide it again"
-                );
-            }
-            else
-            {
-                return Ok(await _documentStorage.ListOrderDocumentsAsync(orderId));
-            }
-        }
-
-        [HttpGet("download-documents/{objectKey}")]
-        // [Authorize(Roles = "shipper,receiver")]
-        [Authorize(Policy = "ShipperOrReceiverOrBasicAuth")]
-        public async Task<ActionResult> DownloadDocuments(string objectKey)
-        {
-            if (objectKey.Length == 0 || objectKey.Equals(""))
-            {
-                return BadRequest(
-                    "The object key of the document intended to be downloaded is required!"
-                );
-            }
-            else
-            {
-                var stream = await _documentStorage.DownloadDocumentAsync(objectKey);
-                return File(stream, "application/octet-stream");
-            }
-        }
-
-        [HttpGet("generate-presigned-url/{objectKey}")]
-        // [Authorize(Roles = "shipper,receiver")]
-        [Authorize(Policy = "ShipperOrReceiverOrBasicAuth")]
-        public async Task<ActionResult> GeneratePresignedURL(
-            string objectKey,
-            [FromQuery] int expiryMinutes = 60
-        )
-        {
-            if (objectKey.Length == 0 || objectKey.Equals(""))
-            {
-                return BadRequest(
-                    "The object key of the document intended to be downloaded is required!"
-                );
-            }
-            else
-            {
-                return Ok(
-                    new
-                    {
-                        url = await _documentStorage.GetPresignedUrlAsync(objectKey, expiryMinutes),
-                    }
-                );
-            }
-        }
-
-        [HttpDelete("delete-documents/{objectKey}")]
-        // [Authorize(Roles = "shipper,receiver")]
-        [Authorize(Policy = "ShipperOrReceiverOrBasicAuth")]
-        public async Task<ActionResult> DeleteDocuments(string objectKey)
-        {
-            if (objectKey.Length == 0 || objectKey.Equals(""))
-            {
-                return BadRequest(
-                    "The object key of the document intended to be downloaded is required!"
-                );
-            }
-            else
-            {
-                await _documentStorage.DeleteDocumentAsync(objectKey);
-                return NoContent();
             }
         }
 
