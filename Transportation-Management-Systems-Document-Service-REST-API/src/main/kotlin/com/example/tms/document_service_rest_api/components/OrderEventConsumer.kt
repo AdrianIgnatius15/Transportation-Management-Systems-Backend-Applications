@@ -13,7 +13,7 @@ class OrderEventConsumer {
         private val logger = KotlinLogging.logger { }
     }
 
-    @RabbitListener(queues = [RabbitMQConfig.TMS_ORDER_EVENT_QUEUE_NAME])
+    @RabbitListener(queues = [RabbitMQConfig.TMS_SHIPMENT_DOCUMENT_QUEUE_NAME])
     fun receiveOrderEventMessages(message: OrderCreatedEvent) {
         logger.info {
             message.orderNumber + "received from MQ"

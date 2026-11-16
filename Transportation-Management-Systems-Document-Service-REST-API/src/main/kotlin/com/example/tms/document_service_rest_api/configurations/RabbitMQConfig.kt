@@ -18,8 +18,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler
 @Configuration
 class RabbitMQConfig {
     companion object {
-        const val TMS_SHIPMENT_DOCUMENT_QUEUE_NAME: String = "tms-document"
-        const val TMS_ORDER_EVENT_QUEUE_NAME: String = "tms-order"
+        const val TMS_SHIPMENT_DOCUMENT_QUEUE_NAME: String = "tms-document-service"
+        const val TMS_ORDER_EVENT_QUEUE_NAME: String = "tms-order-service"
 
         const val SHIPMENT_DOCUMENT_EXCHANGE_NAME: String = "shipment.documents.exchange"
         const val SHIPMENT_DOCUMENT_ROUTING_KEY: String = "tms.document.#"
@@ -50,7 +50,7 @@ class RabbitMQConfig {
 
     @Bean
     fun orderEventBinding(
-        @Qualifier("orderEventQueue") queue: Queue,
+        @Qualifier("shipmentDocumentQueue") queue: Queue,
         @Qualifier("orderEventExchange") exchange: TopicExchange
     ): Binding {
         return BindingBuilder.bind(queue).to(exchange).with(ORDER_EVENT_ROUTING_KEY)
@@ -58,7 +58,7 @@ class RabbitMQConfig {
 
     @Bean
     fun shipmentDocumentBinding(
-        @Qualifier("shipmentDocumentQueue") queue: Queue,
+        @Qualifier("orderEventQueue") queue: Queue,
         @Qualifier("shipmentDocumentExchange") exchange: TopicExchange
     ): Binding {
         return BindingBuilder.bind(queue).to(exchange).with(SHIPMENT_DOCUMENT_ROUTING_KEY)
