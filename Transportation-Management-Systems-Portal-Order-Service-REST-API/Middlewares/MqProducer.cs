@@ -21,24 +21,24 @@ namespace Transportation_Management_Systems_Portal_Order_Service_REST_API.Middle
 
         public async Task SendMessage<T>(T message)
         {
-            var connection = await _mQConnection.GetConnectionAsync();
-            using var channel = await connection.CreateChannelAsync();
-            await channel.QueueDeclareAsync(queue: "tms", durable: true, exclusive: false, autoDelete: false);
+            // var connection = await _mQConnection.GetConnectionAsync();
+            // using var channel = await connection.CreateChannelAsync();
+            // await channel.QueueDeclareAsync(queue: "tms", durable: true, exclusive: false, autoDelete: false);
 
-            var messageToSend = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(message));
-            await channel.BasicPublishAsync(
-                exchange: string.Empty,
-                routingKey: "orders",
-                mandatory: true,
-                body: messageToSend
-            );
+            // var messageToSend = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(message));
+            // await channel.BasicPublishAsync(
+            //     exchange: string.Empty,
+            //     routingKey: "orders",
+            //     mandatory: true,
+            //     body: messageToSend
+            // );
         }
 
         public async Task SendOrderCreatedEventMessage<OrderCreatedEvent>(OrderCreatedEvent orderCreatedEvent)
         {
             var connection = await _mQConnection.GetConnectionAsync();
             using var channel = await connection.CreateChannelAsync();
-            await channel.QueueDeclareAsync(queue: "tms-order", durable: true, exclusive: false, autoDelete: false);
+            await channel.QueueDeclareAsync(queue: "tms-document-service", durable: true, exclusive: false, autoDelete: false);
 
             var messageToSend = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(orderCreatedEvent));
             try

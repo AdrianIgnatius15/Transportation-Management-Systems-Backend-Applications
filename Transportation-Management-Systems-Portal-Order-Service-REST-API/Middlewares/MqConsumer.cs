@@ -65,9 +65,9 @@ namespace Transportation_Management_Systems_Portal_Order_Service_REST_API.Middle
             var mqConfigList = _configuration.GetSection("RabbitMqTopology:Bindings").Get<List<RabbitMQConfig>>();
             var shipmentDocumentMqConfig = mqConfigList?.FirstOrDefault(config => config.Id == "shipment-document");
 
-            await channel.ExchangeDeclareAsync("shipment.documents.exchange", ExchangeType.Topic, durable: true, cancellationToken: stoppingToken);
-            await channel.QueueDeclareAsync(queue: "tms", durable: true, exclusive: false, autoDelete: false, cancellationToken: stoppingToken);
-            await channel.QueueBindAsync("tms", "shipment.documents.exchange", "tms.document.#", cancellationToken: stoppingToken);
+            await channel.ExchangeDeclareAsync(shipmentDocumentMqConfig?.ExchangeName ?? "shipment.documents.exchange", ExchangeType.Topic, durable: true, cancellationToken: stoppingToken);
+            await channel.QueueDeclareAsync(queue: shipmentDocumentMqConfig?.QueueName ?? "tms-document-service", durable: true, exclusive: false, autoDelete: false, cancellationToken: stoppingToken);
+            await channel.QueueBindAsync(queue: shipmentDocumentMqConfig?.QueueName ?? "tms-document-service", exchange: shipmentDocumentMqConfig?.ExchangeName ?? "shipment.documents.exchange", routingKey: "tms.document.#", cancellationToken: stoppingToken);
 
             var consumer = new AsyncEventingBasicConsumer(channel);
 
@@ -102,7 +102,7 @@ namespace Transportation_Management_Systems_Portal_Order_Service_REST_API.Middle
                 }
             };
 
-            await channel.BasicConsumeAsync(queue: "tms", autoAck: false, consumer: consumer, cancellationToken: stoppingToken);
+            await channel.BasicConsumeAsync(queue: shipmentDocumentMqConfig?.QueueName ?? "tms-document-service", autoAck: false, consumer: consumer, cancellationToken: stoppingToken);
         }
 
         private async Task InitializeMqConsumerListenerForOrderEvents(IChannel channel, CancellationToken stoppingToken)
