@@ -29,34 +29,34 @@ var requireHttps = keycloakSection.GetValue<bool?>("RequireHttpsMetadata") ?? tr
 builder.Services.AddDbContext<TMSDbContext>(options => options.UseNpgsql(
     builder.Configuration.GetConnectionString("TMS-Database")
 ));
-builder.Services.Configure<DocumentStorageSettings>(builder.Configuration.GetSection("SeaweedFS"));
+// builder.Services.Configure<DocumentStorageSettings>(builder.Configuration.GetSection("SeaweedFS"));
+// builder.Services.AddSingleton<IAmazonS3>(_ =>
+// {
+//     // var settings = builder.Configuration.GetSection("SeaweedFS").Get<DocumentStorageSettings>()!;
+//     var config = builder.Configuration.GetSection("SeaweedFS");
+//     var serviceUrl = config["ServiceURL"];
+//     var accessKey = config["AccessKey"];
+//     var secretKey = config["SecretKey"];
+
+//     var configuration = new AmazonS3Config
+//     {
+//         ServiceURL = serviceUrl,
+//         ForcePathStyle = true, //Required for SeaweedFS / non-AWS S3
+//         UseHttp = true,
+//         SignatureMethod = Amazon.Runtime.SigningAlgorithm.HmacSHA1
+//     };
+
+//     return new AmazonS3Client(accessKey, secretKey, configuration);
+// });
+// builder.Services.AddHostedService<BucketInitializer>();
 builder.Services.AddHostedService<MqConsumer>();
 builder.Services.AddSingleton<IRabbitMQConnection, RabbitMQConnectionMiddleware>();
-builder.Services.AddSingleton<IAmazonS3>(_ =>
-{
-    // var settings = builder.Configuration.GetSection("SeaweedFS").Get<DocumentStorageSettings>()!;
-    var config = builder.Configuration.GetSection("SeaweedFS");
-    var serviceUrl = config["ServiceURL"];
-    var accessKey = config["AccessKey"];
-    var secretKey = config["SecretKey"];
-
-    var configuration = new AmazonS3Config
-    {
-        ServiceURL = serviceUrl,
-        ForcePathStyle = true, //Required for SeaweedFS / non-AWS S3
-        UseHttp = true,
-        SignatureMethod = Amazon.Runtime.SigningAlgorithm.HmacSHA1
-    };
-
-    return new AmazonS3Client(accessKey, secretKey, configuration);
-});
-builder.Services.AddHostedService<BucketInitializer>();
 builder.Services.AddTransient<IClaimsTransformation, KeycloakRoleTransformer>();
 builder.Services.AddScoped<IOrderRepo, OrderRepo>();
 builder.Services.AddScoped<IAddressRepo, AddressRepo>();
 builder.Services.AddScoped<IClientRepo, ClientRepo>();
 builder.Services.AddScoped<IMQProducer, MqProducer>();
-builder.Services.AddScoped<IDocumentStorageService, DocumentStorageService>();
+// builder.Services.AddScoped<IDocumentStorageService, DocumentStorageService>();
 
 // CORS for Angular front-end (adjust origin as needed)
 builder.Services.AddCors(options =>
