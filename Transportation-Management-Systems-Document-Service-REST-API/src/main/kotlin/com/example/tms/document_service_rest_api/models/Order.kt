@@ -28,11 +28,11 @@ data class Order(
     @Column(name = "Priority")
     val priority: String,
 
-    @Column(name = "ShipmentAddressId")
-    val shipmentAddressId: UUID,
+    @Column(name = "OriginAddressId")
+    val originAddressId: UUID,
 
-    @Column(name = "DeliveryAddressId")
-    val deliveryAddressId: UUID,
+    @Column(name = "DestinationAddressId")
+    val destinationAddressId: UUID,
 
     @OneToMany(mappedBy = "order", fetch = FetchType.LAZY)
     val documents: List<Document> = emptyList(),
