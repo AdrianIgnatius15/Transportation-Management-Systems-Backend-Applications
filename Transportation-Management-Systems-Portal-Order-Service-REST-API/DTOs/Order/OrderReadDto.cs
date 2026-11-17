@@ -19,9 +19,9 @@ namespace Transportation_Management_Systems_Portal_Order_Service_REST_API.DTOs.O
 
         public string Priority { get; set; } = string.Empty;
 
-        public AddressReadDto ShipmentAddress { get; set; } = default!;
+        public AddressReadDto OriginAddress { get; set; } = default!;
 
-        public AddressReadDto DeliveryAddress { get; set; } = default!;
+        public AddressReadDto DestinationAddress { get; set; } = default!;
 
         public List<ShipmentReadDto> Shipments { get; set; } = new List<ShipmentReadDto>();
 

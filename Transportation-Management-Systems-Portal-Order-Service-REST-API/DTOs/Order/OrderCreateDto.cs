@@ -20,10 +20,10 @@ namespace Transportation_Management_Systems_Portal_Order_Service_REST_API.DTOs.O
         public string Priority { get; set; } = string.Empty;
 
         [Required]
-        public AddressCreateDto ShipmentAddress { get; set; } = default!;
+        public AddressCreateDto OriginAddress { get; set; } = default!;
 
         [Required]
-        public AddressCreateDto DeliveryAddress { get; set; } = default!;
+        public AddressCreateDto DestinationAddress { get; set; } = default!;
 
         public List<ShipmentCreateDto> Shipments { get; set; } = new List<ShipmentCreateDto>();
     }

@@ -26,16 +26,16 @@ namespace Transportation_Management_System_Tracking_Service_REST_API.Models
         public string Priority { get; set; } = string.Empty;
 
         [Required]
-        [ForeignKey("ShipmentAddressId")]
-        public Guid ShipmentAddressId { get; set; } = Guid.NewGuid();
+        [ForeignKey("OriginAdressId")]
+        public Guid OriginAdressId { get; set; } = Guid.NewGuid();
 
-        public Address ShipmentAddress { get; set; } = default!;
+        public Address OriginAdress { get; set; } = default!;
 
         [Required]
-        [ForeignKey("DeliveryAddressId")]
-        public Guid DeliveryAddressId { get; set; } = Guid.NewGuid();
+        [ForeignKey("DestinationAddressId")]
+        public Guid DestinationAddressId { get; set; } = Guid.NewGuid();
 
-        public Address DeliveryAddress { get; set; } = default!;
+        public Address DestinationAddress { get; set; } = default!;
 
         public ICollection<Shipment> Shipments { get; set; } = new List<Shipment>();
 

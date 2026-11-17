@@ -9,8 +9,8 @@ namespace Transportation_Management_Systems_Portal_Order_Service_REST_API.DTOs.O
 
         public string? Priority { get; set; }
 
-        public AddressUpdateDto ShipmentAddress { get; set; } = new AddressUpdateDto();
+        public AddressUpdateDto OriginAddress { get; set; } = new AddressUpdateDto();
 
-        public AddressUpdateDto DeliveryAddress { get; set; } = new AddressUpdateDto();
+        public AddressUpdateDto DestinationAddress { get; set; } = new AddressUpdateDto();
     }
 }

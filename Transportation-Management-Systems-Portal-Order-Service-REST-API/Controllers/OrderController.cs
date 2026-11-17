@@ -67,16 +67,16 @@ namespace Transportation_Management_Systems_Portal_Order_Service_REST_API.Contro
                             orderReadDto.Client = MapperUtility.Map<Client, ClientReadDto>(
                                 o.Client
                             );
-                        if (o.ShipmentAddress != null)
-                            orderReadDto.ShipmentAddress = MapperUtility.Map<
+                        if (o.OriginAddress != null)
+                            orderReadDto.OriginAddress = MapperUtility.Map<
                                 Address,
                                 AddressReadDto
-                            >(o.ShipmentAddress);
-                        if (o.DeliveryAddress != null)
-                            orderReadDto.DeliveryAddress = MapperUtility.Map<
+                            >(o.OriginAddress);
+                        if (o.DestinationAddress != null)
+                            orderReadDto.DestinationAddress = MapperUtility.Map<
                                 Address,
                                 AddressReadDto
-                            >(o.DeliveryAddress);
+                            >(o.DestinationAddress);
                         return orderReadDto;
                     })
                     .ToList();
@@ -124,16 +124,16 @@ namespace Transportation_Management_Systems_Portal_Order_Service_REST_API.Contro
                             orderReadDto.Client = MapperUtility.Map<Client, ClientReadDto>(
                                 o.Client
                             );
-                        if (o.ShipmentAddress != null)
-                            orderReadDto.ShipmentAddress = MapperUtility.Map<
+                        if (o.OriginAddress != null)
+                            orderReadDto.OriginAddress = MapperUtility.Map<
                                 Address,
                                 AddressReadDto
-                            >(o.ShipmentAddress);
-                        if (o.DeliveryAddress != null)
-                            orderReadDto.DeliveryAddress = MapperUtility.Map<
+                            >(o.OriginAddress);
+                        if (o.DestinationAddress != null)
+                            orderReadDto.DestinationAddress = MapperUtility.Map<
                                 Address,
                                 AddressReadDto
-                            >(o.DeliveryAddress);
+                            >(o.DestinationAddress);
                         return orderReadDto;
                     })
                     .ToList();
@@ -168,16 +168,16 @@ namespace Transportation_Management_Systems_Portal_Order_Service_REST_API.Contro
                 .Items.Select(order =>
                 {
                     var orderReadDto = MapperUtility.Map<Order, OrderReadDto>(order);
-                    if (order.ShipmentAddress != null)
-                        orderReadDto.ShipmentAddress = MapperUtility.Map<
+                    if (order.OriginAddress != null)
+                        orderReadDto.OriginAddress = MapperUtility.Map<
                             Address,
                             AddressReadDto
-                        >(order.ShipmentAddress);
-                    if (order.DeliveryAddress != null)
-                        orderReadDto.DeliveryAddress = MapperUtility.Map<
+                        >(order.OriginAddress);
+                    if (order.DestinationAddress != null)
+                        orderReadDto.DestinationAddress = MapperUtility.Map<
                             Address,
                             AddressReadDto
-                        >(order.DeliveryAddress);
+                        >(order.DestinationAddress);
                     if (order.Shipments != null && order.Shipments.Count > 0)
                     {
                         foreach (var shipment in order.Shipments)
@@ -225,10 +225,10 @@ namespace Transportation_Management_Systems_Portal_Order_Service_REST_API.Contro
             {
                 // Map DTOs to entities
                 var shipmentAddress = MapperUtility.Map<AddressCreateDto, Address>(
-                    orderCreateDto.ShipmentAddress
+                    orderCreateDto.OriginAddress
                 );
                 var deliveryAddress = MapperUtility.Map<AddressCreateDto, Address>(
-                    orderCreateDto.DeliveryAddress
+                    orderCreateDto.DestinationAddress
                 );
 
                 // Create the order with mapped addresses
@@ -239,8 +239,8 @@ namespace Transportation_Management_Systems_Portal_Order_Service_REST_API.Contro
                     OrderNumber = Guid.NewGuid().ToString(),
                     Status = orderCreateDto.Status,
                     Priority = orderCreateDto.Priority,
-                    ShipmentAddress = shipmentAddress,
-                    DeliveryAddress = deliveryAddress,
+                    OriginAddress = shipmentAddress,
+                    DestinationAddress = deliveryAddress,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
                 };
@@ -321,13 +321,13 @@ namespace Transportation_Management_Systems_Portal_Order_Service_REST_API.Contro
                 orderReadDto.Client = MapperUtility.Map<Client, ClientReadDto>(
                     orderToUpdate.Client
                 );
-            if (orderToUpdate.ShipmentAddress != null)
-                orderReadDto.ShipmentAddress = MapperUtility.Map<Address, AddressReadDto>(
-                    orderToUpdate.ShipmentAddress
+            if (orderToUpdate.OriginAddress != null)
+                orderReadDto.OriginAddress = MapperUtility.Map<Address, AddressReadDto>(
+                    orderToUpdate.OriginAddress
                 );
-            if (orderToUpdate.DeliveryAddress != null)
-                orderReadDto.DeliveryAddress = MapperUtility.Map<Address, AddressReadDto>(
-                    orderToUpdate.DeliveryAddress
+            if (orderToUpdate.DestinationAddress != null)
+                orderReadDto.DestinationAddress = MapperUtility.Map<Address, AddressReadDto>(
+                    orderToUpdate.DestinationAddress
                 );
 
             return Ok(orderReadDto);
@@ -356,13 +356,13 @@ namespace Transportation_Management_Systems_Portal_Order_Service_REST_API.Contro
                 if (order != null)
                 {
                     var orderReadDto = MapperUtility.Map<Order, OrderReadDto>(order);
-                    if (order.DeliveryAddress != null)
+                    if (order.DestinationAddress != null)
                     {
-                        orderReadDto.DeliveryAddress = MapperUtility.Map<Address, AddressReadDto>(order.DeliveryAddress);
+                        orderReadDto.DestinationAddress = MapperUtility.Map<Address, AddressReadDto>(order.DestinationAddress);
                     }
-                    if (order.ShipmentAddress != null)
+                    if (order.OriginAddress != null)
                     {
-                        orderReadDto.ShipmentAddress = MapperUtility.Map<Address, AddressReadDto>(order.ShipmentAddress);
+                        orderReadDto.OriginAddress = MapperUtility.Map<Address, AddressReadDto>(order.OriginAddress);
                     }
                     if (order.Shipments != null && order.Shipments.Count > 0)
                     {

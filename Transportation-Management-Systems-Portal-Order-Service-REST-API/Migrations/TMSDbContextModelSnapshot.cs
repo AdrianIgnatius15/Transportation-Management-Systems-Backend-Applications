@@ -17,12 +17,12 @@ namespace Transportation_Management_Systems_Portal_Order_Service_REST_API.Migrat
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.4")
+                .HasAnnotation("ProductVersion", "10.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Transport_Management_Systems_Portal_Order_Service_REST_API.Models.Address", b =>
+            modelBuilder.Entity("Transportation_Management_Systems_Portal_Order_Service_REST_API.Models.Address", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -62,7 +62,7 @@ namespace Transportation_Management_Systems_Portal_Order_Service_REST_API.Migrat
                     b.ToTable("Addresses");
                 });
 
-            modelBuilder.Entity("Transport_Management_Systems_Portal_Order_Service_REST_API.Models.Client", b =>
+            modelBuilder.Entity("Transportation_Management_Systems_Portal_Order_Service_REST_API.Models.Client", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -85,7 +85,7 @@ namespace Transportation_Management_Systems_Portal_Order_Service_REST_API.Migrat
                     b.ToTable("Clients");
                 });
 
-            modelBuilder.Entity("Transport_Management_Systems_Portal_Order_Service_REST_API.Models.Document", b =>
+            modelBuilder.Entity("Transportation_Management_Systems_Portal_Order_Service_REST_API.Models.Document", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -111,7 +111,7 @@ namespace Transportation_Management_Systems_Portal_Order_Service_REST_API.Migrat
                     b.ToTable("Documents");
                 });
 
-            modelBuilder.Entity("Transport_Management_Systems_Portal_Order_Service_REST_API.Models.Order", b =>
+            modelBuilder.Entity("Transportation_Management_Systems_Portal_Order_Service_REST_API.Models.Order", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -123,19 +123,19 @@ namespace Transportation_Management_Systems_Portal_Order_Service_REST_API.Migrat
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid>("DeliveryAddressId")
+                    b.Property<Guid>("DestinationAddressId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("OrderNumber")
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<Guid>("OriginAddressId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Priority")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<Guid>("ShipmentAddressId")
-                        .HasColumnType("uuid");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");
@@ -147,14 +147,14 @@ namespace Transportation_Management_Systems_Portal_Order_Service_REST_API.Migrat
 
                     b.HasIndex("ClientId");
 
-                    b.HasIndex("DeliveryAddressId");
+                    b.HasIndex("DestinationAddressId");
 
-                    b.HasIndex("ShipmentAddressId");
+                    b.HasIndex("OriginAddressId");
 
                     b.ToTable("Orders");
                 });
 
-            modelBuilder.Entity("Transport_Management_Systems_Portal_Order_Service_REST_API.Models.Piece", b =>
+            modelBuilder.Entity("Transportation_Management_Systems_Portal_Order_Service_REST_API.Models.Piece", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -186,7 +186,7 @@ namespace Transportation_Management_Systems_Portal_Order_Service_REST_API.Migrat
                     b.ToTable("Pieces");
                 });
 
-            modelBuilder.Entity("Transport_Management_Systems_Portal_Order_Service_REST_API.Models.Shipment", b =>
+            modelBuilder.Entity("Transportation_Management_Systems_Portal_Order_Service_REST_API.Models.Shipment", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -202,7 +202,7 @@ namespace Transportation_Management_Systems_Portal_Order_Service_REST_API.Migrat
                     b.ToTable("Shipments");
                 });
 
-            modelBuilder.Entity("Transport_Management_Systems_Portal_Order_Service_REST_API.Models.TrackingEvent", b =>
+            modelBuilder.Entity("Transportation_Management_Systems_Portal_Order_Service_REST_API.Models.TrackingEvent", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -233,9 +233,9 @@ namespace Transportation_Management_Systems_Portal_Order_Service_REST_API.Migrat
                     b.ToTable("TrackingEvents");
                 });
 
-            modelBuilder.Entity("Transport_Management_Systems_Portal_Order_Service_REST_API.Models.Document", b =>
+            modelBuilder.Entity("Transportation_Management_Systems_Portal_Order_Service_REST_API.Models.Document", b =>
                 {
-                    b.HasOne("Transport_Management_Systems_Portal_Order_Service_REST_API.Models.Order", "Order")
+                    b.HasOne("Transportation_Management_Systems_Portal_Order_Service_REST_API.Models.Order", "Order")
                         .WithMany("Documents")
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -244,36 +244,36 @@ namespace Transportation_Management_Systems_Portal_Order_Service_REST_API.Migrat
                     b.Navigation("Order");
                 });
 
-            modelBuilder.Entity("Transport_Management_Systems_Portal_Order_Service_REST_API.Models.Order", b =>
+            modelBuilder.Entity("Transportation_Management_Systems_Portal_Order_Service_REST_API.Models.Order", b =>
                 {
-                    b.HasOne("Transport_Management_Systems_Portal_Order_Service_REST_API.Models.Client", "Client")
+                    b.HasOne("Transportation_Management_Systems_Portal_Order_Service_REST_API.Models.Client", "Client")
                         .WithMany("Orders")
                         .HasForeignKey("ClientId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Transport_Management_Systems_Portal_Order_Service_REST_API.Models.Address", "DeliveryAddress")
+                    b.HasOne("Transportation_Management_Systems_Portal_Order_Service_REST_API.Models.Address", "DestinationAddress")
                         .WithMany()
-                        .HasForeignKey("DeliveryAddressId")
+                        .HasForeignKey("DestinationAddressId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Transport_Management_Systems_Portal_Order_Service_REST_API.Models.Address", "ShipmentAddress")
+                    b.HasOne("Transportation_Management_Systems_Portal_Order_Service_REST_API.Models.Address", "OriginAddress")
                         .WithMany()
-                        .HasForeignKey("ShipmentAddressId")
+                        .HasForeignKey("OriginAddressId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Client");
 
-                    b.Navigation("DeliveryAddress");
+                    b.Navigation("DestinationAddress");
 
-                    b.Navigation("ShipmentAddress");
+                    b.Navigation("OriginAddress");
                 });
 
-            modelBuilder.Entity("Transport_Management_Systems_Portal_Order_Service_REST_API.Models.Piece", b =>
+            modelBuilder.Entity("Transportation_Management_Systems_Portal_Order_Service_REST_API.Models.Piece", b =>
                 {
-                    b.HasOne("Transport_Management_Systems_Portal_Order_Service_REST_API.Models.Shipment", "Shipment")
+                    b.HasOne("Transportation_Management_Systems_Portal_Order_Service_REST_API.Models.Shipment", "Shipment")
                         .WithMany("Pieces")
                         .HasForeignKey("ShipmentId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -282,9 +282,9 @@ namespace Transportation_Management_Systems_Portal_Order_Service_REST_API.Migrat
                     b.Navigation("Shipment");
                 });
 
-            modelBuilder.Entity("Transport_Management_Systems_Portal_Order_Service_REST_API.Models.Shipment", b =>
+            modelBuilder.Entity("Transportation_Management_Systems_Portal_Order_Service_REST_API.Models.Shipment", b =>
                 {
-                    b.HasOne("Transport_Management_Systems_Portal_Order_Service_REST_API.Models.Order", "Order")
+                    b.HasOne("Transportation_Management_Systems_Portal_Order_Service_REST_API.Models.Order", "Order")
                         .WithMany("Shipments")
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -293,9 +293,9 @@ namespace Transportation_Management_Systems_Portal_Order_Service_REST_API.Migrat
                     b.Navigation("Order");
                 });
 
-            modelBuilder.Entity("Transport_Management_Systems_Portal_Order_Service_REST_API.Models.TrackingEvent", b =>
+            modelBuilder.Entity("Transportation_Management_Systems_Portal_Order_Service_REST_API.Models.TrackingEvent", b =>
                 {
-                    b.HasOne("Transport_Management_Systems_Portal_Order_Service_REST_API.Models.Order", "Order")
+                    b.HasOne("Transportation_Management_Systems_Portal_Order_Service_REST_API.Models.Order", "Order")
                         .WithMany()
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -304,19 +304,19 @@ namespace Transportation_Management_Systems_Portal_Order_Service_REST_API.Migrat
                     b.Navigation("Order");
                 });
 
-            modelBuilder.Entity("Transport_Management_Systems_Portal_Order_Service_REST_API.Models.Client", b =>
+            modelBuilder.Entity("Transportation_Management_Systems_Portal_Order_Service_REST_API.Models.Client", b =>
                 {
                     b.Navigation("Orders");
                 });
 
-            modelBuilder.Entity("Transport_Management_Systems_Portal_Order_Service_REST_API.Models.Order", b =>
+            modelBuilder.Entity("Transportation_Management_Systems_Portal_Order_Service_REST_API.Models.Order", b =>
                 {
                     b.Navigation("Documents");
 
                     b.Navigation("Shipments");
                 });
 
-            modelBuilder.Entity("Transport_Management_Systems_Portal_Order_Service_REST_API.Models.Shipment", b =>
+            modelBuilder.Entity("Transportation_Management_Systems_Portal_Order_Service_REST_API.Models.Shipment", b =>
                 {
                     b.Navigation("Pieces");
                 });

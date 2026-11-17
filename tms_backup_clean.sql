@@ -49,8 +49,8 @@ CREATE TABLE tms."Orders" (
     "OrderNumber" text NOT NULL,
     "Status" integer NOT NULL,
     "Priority" text NOT NULL,
-    "ShipmentAddressId" uuid NOT NULL,
-    "DeliveryAddressId" uuid NOT NULL,
+    "OriginAddressId" uuid NOT NULL,
+    "DestinationAddressId" uuid NOT NULL,
     "CreatedAt" timestamp with time zone NOT NULL,
     "UpdatedAt" timestamp with time zone NOT NULL
 );
@@ -124,7 +124,7 @@ COPY tms."Clients" ("Id", "Name", "ContactEmail", "ContactPhone") FROM stdin;
 COPY tms."Documents" ("Id", "OrderId", "Type", "FileName", "StorageUrl", "CreatedAt") FROM stdin;
 \.
 
-COPY tms."Orders" ("Id", "ClientId", "OrderNumber", "Status", "Priority", "ShipmentAddressId", "DeliveryAddressId", "CreatedAt", "UpdatedAt") FROM stdin;
+COPY tms."Orders" ("Id", "ClientId", "OrderNumber", "Status", "Priority", "OriginAddressId", "DestinationAddressId", "CreatedAt", "UpdatedAt") FROM stdin;
 b65f0228-c150-46b6-b54e-c0d96efc70aa	7afa16e1-6d65-44dd-8822-bdc10fe6347f	eceee27f-8e86-4e17-ada4-754b5cd20f2a	0	Standard	b9426a52-9435-4598-a836-3bc3e69a6a3b	d1e44de0-d63d-4d0b-b77f-b93b23400bff	2026-09-11 14:13:05.45912+00	2026-09-11 14:13:05.459154+00
 \.
 
@@ -181,9 +181,9 @@ CREATE INDEX "IX_Documents_OrderId" ON tms."Documents" USING btree ("OrderId");
 
 CREATE INDEX "IX_Orders_ClientId" ON tms."Orders" USING btree ("ClientId");
 
-CREATE INDEX "IX_Orders_DeliveryAddressId" ON tms."Orders" USING btree ("DeliveryAddressId");
+CREATE INDEX "IX_Orders_DestinationAddressId" ON tms."Orders" USING btree ("DestinationAddressId");
 
-CREATE INDEX "IX_Orders_ShipmentAddressId" ON tms."Orders" USING btree ("ShipmentAddressId");
+CREATE INDEX "IX_Orders_OriginAddressId" ON tms."Orders" USING btree ("OriginAddressId");
 
 CREATE INDEX "IX_Pieces_ShipmentId" ON tms."Pieces" USING btree ("ShipmentId");
 
@@ -197,10 +197,10 @@ ALTER TABLE tms."Documents"
     ADD CONSTRAINT "FK_Documents_Orders_OrderId" FOREIGN KEY ("OrderId") REFERENCES tms."Orders"("Id") ON DELETE CASCADE;
 
 ALTER TABLE tms."Orders"
-    ADD CONSTRAINT "FK_Orders_Addresses_DeliveryAddressId" FOREIGN KEY ("DeliveryAddressId") REFERENCES tms."Addresses"("Id") ON DELETE CASCADE;
+    ADD CONSTRAINT "FK_Orders_Addresses_DestinationAddressId" FOREIGN KEY ("DestinationAddressId") REFERENCES tms."Addresses"("Id") ON DELETE CASCADE;
 
 ALTER TABLE tms."Orders"
-    ADD CONSTRAINT "FK_Orders_Addresses_ShipmentAddressId" FOREIGN KEY ("ShipmentAddressId") REFERENCES tms."Addresses"("Id") ON DELETE CASCADE;
+    ADD CONSTRAINT "FK_Orders_Addresses_OriginAddressId" FOREIGN KEY ("OriginAddressId") REFERENCES tms."Addresses"("Id") ON DELETE CASCADE;
 
 ALTER TABLE tms."Orders"
     ADD CONSTRAINT "FK_Orders_Clients_ClientId" FOREIGN KEY ("ClientId") REFERENCES tms."Clients"("Id") ON DELETE CASCADE;
