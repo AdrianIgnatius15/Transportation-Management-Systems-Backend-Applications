@@ -13,6 +13,8 @@ namespace Transportation_Management_System_Tracking_Service_REST_API.Data.Interf
 
         Task<TrackingEvent?> GetLatestPositionAsync(Guid orderId);
 
+        void UpdateExistingOrderShipmentEvent(Guid id, TrackingEventUpdateDto trackingEventUpdate);
+
         Task<bool> SaveChangesAsync();
     }
 }

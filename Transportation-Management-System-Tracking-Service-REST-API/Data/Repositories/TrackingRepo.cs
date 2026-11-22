@@ -65,5 +65,19 @@ namespace Transportation_Management_System_Tracking_Service_REST_API.Data.Reposi
         {
             return (await _dbContext.SaveChangesAsync()) > 0;
         }
+
+        public void UpdateExistingOrderShipmentEvent(Guid id, TrackingEventUpdateDto trackingEventUpdate)
+        {
+            var trackingEvent = new TrackingEvent
+            {
+                OrderId = id,
+                EventType = trackingEventUpdate.EventType,
+                Description = trackingEventUpdate.Description,
+                Latitude = trackingEventUpdate.Latitude,
+                Longitude = trackingEventUpdate.Longitude,
+                Timestamp = DateTime.UtcNow,
+            };
+            _dbContext.TrackingEvents.Update(trackingEvent);
+        }
     }
 }
