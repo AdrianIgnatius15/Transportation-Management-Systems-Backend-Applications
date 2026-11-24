@@ -25,7 +25,7 @@ class RabbitMQConfig {
         const val SHIPMENT_DOCUMENT_ROUTING_KEY: String = "tms.document.#"
 
         const val ORDER_EVENT_EXCHANGE_NAME: String = "order.event.exchange"
-        const val ORDER_EVENT_ROUTING_KEY: String = "order.event.#"
+        const val ORDER_EVENT_ROUTING_KEY: String = "tms.order.#"
     }
 
     @Bean
