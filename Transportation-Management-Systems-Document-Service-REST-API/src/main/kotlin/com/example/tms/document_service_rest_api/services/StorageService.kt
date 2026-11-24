@@ -3,6 +3,8 @@ package com.example.tms.document_service_rest_api.services
 import com.example.tms.document_service_rest_api.components.DocumentEventDispatcher
 import com.example.tms.document_service_rest_api.models.enums.DocumentType
 import com.example.tms.document_service_rest_api.models.sealedmodels.DocumentCreatedEvent
+import com.example.tms.document_service_rest_api.models.sealedmodels.DocumentDeletedEvent
+import com.example.tms.document_service_rest_api.models.sealedmodels.DocumentsDeletedEvent
 import com.example.tms.document_service_rest_api.repositories.services.DocumentRepositoryService
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.beans.factory.annotation.Value
@@ -184,6 +186,14 @@ class StorageService(
 
             s3Client.deleteObjects(deleteObjectBucketRequest)
             documentRepositoryService.deleteDocumentsBasedOnOrderId(UUID.fromString(orderId))
+            val fileKeys: MutableList<String> = mutableListOf<String>()
+            objectsToDelete.forEach { fileKeys.add(it.key()) }
+            documentEventDispatcher.dispatchSingleMessageToRabbitMQ(
+                "deleted", DocumentsDeletedEvent(
+                    orderId,
+                    fileKeys
+                )
+            )
             true
         } catch (e: S3Exception) {
             logger.error { "Error while deleting the file due to: ${e.message}" }
