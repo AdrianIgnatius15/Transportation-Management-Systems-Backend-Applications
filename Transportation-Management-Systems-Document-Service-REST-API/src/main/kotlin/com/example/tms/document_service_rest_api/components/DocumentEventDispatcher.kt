@@ -22,21 +22,21 @@ class DocumentEventDispatcher(
     private val batchingRabbitTemplate: BatchingRabbitTemplate
 ) {
     fun dispatchSingleMessageToRabbitMQ(actionSubTopic: String, dataforQueue: TMSDocumentEvent) {
-        val specificRoutingKeyFor = "tms.document.$actionSubTopic"
+        val specificRoutingKeyFor = "tms.order.$actionSubTopic"
 
         rabbitTemplate.convertAndSend(
-            RabbitMQConfig.SHIPMENT_DOCUMENT_EXCHANGE_NAME,
+            RabbitMQConfig.ORDER_EVENT_EXCHANGE_NAME,
             specificRoutingKeyFor,
             dataforQueue
         )
     }
 
     fun dispatchMultipleMessageToRabbitMQ(actionSubTopic: String, multipleDataForQueue: List<TMSDocumentEvent>) {
-        val specificRoutingKeyFor = "tms.document.$actionSubTopic"
+        val specificRoutingKeyFor = "tms.order.$actionSubTopic"
 
         multipleDataForQueue.forEach { event ->
             batchingRabbitTemplate.convertAndSend(
-                RabbitMQConfig.SHIPMENT_DOCUMENT_EXCHANGE_NAME,
+                RabbitMQConfig.ORDER_EVENT_EXCHANGE_NAME,
                 specificRoutingKeyFor,
                 event
             )
