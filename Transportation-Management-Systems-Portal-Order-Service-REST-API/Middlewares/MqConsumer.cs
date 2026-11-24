@@ -46,7 +46,8 @@ namespace Transportation_Management_Systems_Portal_Order_Service_REST_API.Middle
                     return;
                 }
 
-                await InitializeMqConsumerListenerForShipmentDocuments(_channel, stoppingToken);
+                // await InitializeMqConsumerListenerForShipmentDocuments(_channel, stoppingToken);
+                await InitializeMqConsumerListenerForOrderEvents(_channel, stoppingToken);
 
                 await Task.Delay(Timeout.Infinite, stoppingToken);
             }
@@ -63,11 +64,11 @@ namespace Transportation_Management_Systems_Portal_Order_Service_REST_API.Middle
         private async Task InitializeMqConsumerListenerForShipmentDocuments(IChannel channel, CancellationToken stoppingToken)
         {
             var mqConfigList = _configuration.GetSection("RabbitMqTopology:Bindings").Get<List<RabbitMQConfig>>();
-            var shipmentDocumentMqConfig = mqConfigList?.FirstOrDefault(config => config.Id == "shipment-document");
+            var trackingMqConfig = mqConfigList?.FirstOrDefault(config => config.Id == "shipment-document");
 
-            await channel.ExchangeDeclareAsync(shipmentDocumentMqConfig?.ExchangeName ?? "shipment.documents.exchange", ExchangeType.Topic, durable: true, cancellationToken: stoppingToken);
-            await channel.QueueDeclareAsync(queue: shipmentDocumentMqConfig?.QueueName ?? "tms-document-service", durable: true, exclusive: false, autoDelete: false, cancellationToken: stoppingToken);
-            await channel.QueueBindAsync(queue: shipmentDocumentMqConfig?.QueueName ?? "tms-document-service", exchange: shipmentDocumentMqConfig?.ExchangeName ?? "shipment.documents.exchange", routingKey: "tms.document.#", cancellationToken: stoppingToken);
+            await channel.ExchangeDeclareAsync(trackingMqConfig?.ExchangeName ?? "shipment.documents.exchange", ExchangeType.Topic, durable: true, cancellationToken: stoppingToken);
+            await channel.QueueDeclareAsync(queue: trackingMqConfig?.QueueName ?? "tms-document-service", durable: true, exclusive: false, autoDelete: false, cancellationToken: stoppingToken);
+            await channel.QueueBindAsync(queue: trackingMqConfig?.QueueName ?? "tms-document-service", exchange: trackingMqConfig?.ExchangeName ?? "shipment.documents.exchange", routingKey: "tms.document.#", cancellationToken: stoppingToken);
 
             var consumer = new AsyncEventingBasicConsumer(channel);
 
@@ -84,7 +85,7 @@ namespace Transportation_Management_Systems_Portal_Order_Service_REST_API.Middle
                     if (root.TryGetProperty("eventType", out var eventTypeProp))
                     {
                         string eventType = eventTypeProp.GetString() ?? "UNKNOWN";
-                        _logger.LogInformation($"[AMQP EX-ROUTE] [{shipmentDocumentMqConfig?.ExchangeName ?? ""}] Received context identifier: {eventType}");
+                        _logger.LogInformation($"[AMQP EX-ROUTE] [{trackingMqConfig?.ExchangeName ?? ""}] Received context identifier: {eventType}");
 
                         // Forward deserialization targeting into our shared polymorphic handler switcher matrix
                         await RouteEventToSpecificHandlerAsync(eventType, rawJsonMessage);
@@ -95,24 +96,24 @@ namespace Transportation_Management_Systems_Portal_Order_Service_REST_API.Middle
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, $"[AMQP PROCESSING FAIL] Failure handling payload inside exchange context: {shipmentDocumentMqConfig?.ExchangeName ?? ""}");
+                    _logger.LogError(ex, $"[AMQP PROCESSING FAIL] Failure handling payload inside exchange context: {trackingMqConfig?.ExchangeName ?? ""}");
 
                     // Negative acknowledgement: Rolls back message onto the Docker queue safely
                     await channel.BasicNackAsync(deliveryTag: ea.DeliveryTag, multiple: false, requeue: true, cancellationToken: stoppingToken);
                 }
             };
 
-            await channel.BasicConsumeAsync(queue: shipmentDocumentMqConfig?.QueueName ?? "tms-document-service", autoAck: false, consumer: consumer, cancellationToken: stoppingToken);
+            await channel.BasicConsumeAsync(queue: trackingMqConfig?.QueueName ?? "tms-document-service", autoAck: false, consumer: consumer, cancellationToken: stoppingToken);
         }
 
         private async Task InitializeMqConsumerListenerForOrderEvents(IChannel channel, CancellationToken stoppingToken)
         {
             var mqConfigList = _configuration.GetSection("RabbitMqTopology:Bindings").Get<List<RabbitMQConfig>>();
-            var shipmentDocumentMqConfig = mqConfigList?.FirstOrDefault(config => config.Id == "order-shipment");
+            var orderMqConfig = mqConfigList?.FirstOrDefault(config => config.Id == "order-shipment");
 
-            await channel.ExchangeDeclareAsync(shipmentDocumentMqConfig?.ExchangeName ?? "", ExchangeType.Topic, durable: true, cancellationToken: stoppingToken);
-            await channel.QueueDeclareAsync(queue: "tms", durable: true, exclusive: false, autoDelete: false, cancellationToken: stoppingToken);
-            await channel.QueueBindAsync("tms", shipmentDocumentMqConfig?.ExchangeName ?? "", shipmentDocumentMqConfig?.RoutingKeyPattern ?? "", cancellationToken: stoppingToken);
+            await channel.ExchangeDeclareAsync(orderMqConfig?.ExchangeName ?? "order.event.exchange", ExchangeType.Topic, durable: true, cancellationToken: stoppingToken);
+            await channel.QueueDeclareAsync(queue: orderMqConfig?.QueueName ?? "tms-order-service", durable: true, exclusive: false, autoDelete: false, cancellationToken: stoppingToken);
+            await channel.QueueBindAsync(queue: orderMqConfig?.QueueName ?? "tms-order-service", orderMqConfig?.ExchangeName ?? "order.event.exchange", orderMqConfig?.RoutingKeyPattern ?? "tms.order.#", cancellationToken: stoppingToken);
 
             var consumer = new AsyncEventingBasicConsumer(channel);
 
@@ -129,7 +130,7 @@ namespace Transportation_Management_Systems_Portal_Order_Service_REST_API.Middle
                     if (root.TryGetProperty("eventType", out var eventTypeProp))
                     {
                         string eventType = eventTypeProp.GetString() ?? "UNKNOWN";
-                        _logger.LogInformation($"[AMQP EX-ROUTE] [{shipmentDocumentMqConfig?.ExchangeName ?? ""}] Received context identifier: {eventType}");
+                        _logger.LogInformation($"[AMQP EX-ROUTE] [{orderMqConfig?.ExchangeName ?? ""}] Received context identifier: {eventType}");
 
                         // Forward deserialization targeting into our shared polymorphic handler switcher matrix
                         await RouteEventToSpecificHandlerAsync(eventType, rawJsonMessage);
@@ -140,7 +141,52 @@ namespace Transportation_Management_Systems_Portal_Order_Service_REST_API.Middle
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, $"[AMQP PROCESSING FAIL] Failure handling payload inside exchange context: {shipmentDocumentMqConfig?.ExchangeName ?? ""}");
+                    _logger.LogError(ex, $"[AMQP PROCESSING FAIL] Failure handling payload inside exchange context: {orderMqConfig?.ExchangeName ?? ""}");
+
+                    // Negative acknowledgement: Rolls back message onto the Docker queue safely
+                    await channel.BasicNackAsync(deliveryTag: ea.DeliveryTag, multiple: false, requeue: true, cancellationToken: stoppingToken);
+                }
+            };
+
+            await channel.BasicConsumeAsync(queue: orderMqConfig?.QueueName ?? "tms-order-service", autoAck: false, consumer: consumer, cancellationToken: stoppingToken);
+        }
+
+        private async Task InitializeMqConsumerListenerForTrackingEvents(IChannel channel, CancellationToken stoppingToken)
+        {
+            var mqConfigList = _configuration.GetSection("RabbitMqTopology:Bindings").Get<List<RabbitMQConfig>>();
+            var trackingMqConfig = mqConfigList?.FirstOrDefault(config => config.Id == "shipment-tracking");
+
+            await channel.ExchangeDeclareAsync(trackingMqConfig?.ExchangeName ?? "", ExchangeType.Topic, durable: true, cancellationToken: stoppingToken);
+            await channel.QueueDeclareAsync(queue: trackingMqConfig?.QueueName ?? "", durable: true, exclusive: false, autoDelete: false, cancellationToken: stoppingToken);
+            await channel.QueueBindAsync(trackingMqConfig?.QueueName ?? "", trackingMqConfig?.ExchangeName ?? "", trackingMqConfig?.RoutingKeyPattern ?? "", cancellationToken: stoppingToken);
+
+            var consumer = new AsyncEventingBasicConsumer(channel);
+
+            consumer.ReceivedAsync += async (model, ea) =>
+            {
+                var body = ea.Body.ToArray();
+                var rawJsonMessage = Encoding.UTF8.GetString(body);
+
+                try
+                {
+                    using var jsonDoc = JsonDocument.Parse(rawJsonMessage);
+                    var root = jsonDoc.RootElement;
+
+                    if (root.TryGetProperty("eventType", out var eventTypeProp))
+                    {
+                        string eventType = eventTypeProp.GetString() ?? "UNKNOWN";
+                        _logger.LogInformation($"[AMQP EX-ROUTE] [{trackingMqConfig?.ExchangeName ?? ""}] Received context identifier: {eventType}");
+
+                        // Forward deserialization targeting into our shared polymorphic handler switcher matrix
+                        await RouteEventToSpecificHandlerAsync(eventType, rawJsonMessage);
+                    }
+
+                    // Explicitly acknowledge processing completion back onto the broker pipeline
+                    await channel.BasicAckAsync(deliveryTag: ea.DeliveryTag, multiple: false, cancellationToken: stoppingToken);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"[AMQP PROCESSING FAIL] Failure handling payload inside exchange context: {trackingMqConfig?.ExchangeName ?? ""}");
 
                     // Negative acknowledgement: Rolls back message onto the Docker queue safely
                     await channel.BasicNackAsync(deliveryTag: ea.DeliveryTag, multiple: false, requeue: true, cancellationToken: stoppingToken);
