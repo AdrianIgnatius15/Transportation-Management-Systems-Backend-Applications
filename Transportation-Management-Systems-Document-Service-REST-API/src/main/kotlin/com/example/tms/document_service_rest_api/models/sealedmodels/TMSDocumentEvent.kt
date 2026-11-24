@@ -14,6 +14,11 @@ data class DocumentDeletedEvent(
     val folderPath: String
 ) : TMSDocumentEvent(eventType = "DOCUMENT_DELETED")
 
+data class DocumentsDeletedEvent(
+    val orderId: String,
+    val foldersPath: MutableList<String>
+) : TMSDocumentEvent(eventType = "DOCUMENT_DELETED")
+
 data class DocumentCreatedEvent(
     val orderId: String,
     val fileName: String,
