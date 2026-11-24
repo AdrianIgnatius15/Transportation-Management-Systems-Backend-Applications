@@ -188,7 +188,7 @@ class StorageService(
             documentRepositoryService.deleteDocumentsBasedOnOrderId(UUID.fromString(orderId))
             val fileKeys: MutableList<String> = mutableListOf<String>()
             objectsToDelete.forEach { fileKeys.add(it.key()) }
-            documentEventDispatcher.dispatchSingleMessageToRabbitMQ(
+            documentEventDispatcher.dispatchDocumentMessageToRabbitMQ(
                 "deleted", DocumentsDeletedEvent(
                     orderId,
                     fileKeys

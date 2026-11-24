@@ -5,6 +5,7 @@ import com.example.tms.document_service_rest_api.models.sealedmodels.TMSDocument
 import org.springframework.amqp.rabbit.core.BatchingRabbitTemplate
 import org.springframework.amqp.rabbit.core.RabbitTemplate
 import org.springframework.stereotype.Component
+import io.github.oshai.kotlinlogging.KotlinLogging
 
 /**
  * ## Document Event Dispatcher
@@ -21,6 +22,11 @@ class DocumentEventDispatcher(
     private val rabbitTemplate: RabbitTemplate,
     private val batchingRabbitTemplate: BatchingRabbitTemplate
 ) {
+    companion object {
+        private val TAG = StorageService::class.java.name
+        private val logger = KotlinLogging.logger {}
+    }
+
     fun dispatchSingleMessageToRabbitMQ(actionSubTopic: String, dataforQueue: TMSDocumentEvent) {
         val specificRoutingKeyFor = "tms.order.$actionSubTopic"
 
@@ -41,5 +47,15 @@ class DocumentEventDispatcher(
                 event
             )
         }
+    }
+
+    fun dispatchDocumentMessageToRabbitMQ(actionSubTopic: String, dataforQueue: TMSDocumentEvent) {
+        val specificRouting = "tms.order.documents.$actionSubTopic"
+
+        rabbitTemplate.convertAndSend(
+            RabbitMQConfig.ORDER_EVENT_EXCHANGE_NAME,
+            specificRoutingKeyFor,
+            dataforQueue
+        )
     }
 }
