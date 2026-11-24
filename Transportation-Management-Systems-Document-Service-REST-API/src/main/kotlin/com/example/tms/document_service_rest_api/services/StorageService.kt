@@ -33,7 +33,7 @@ class StorageService(
     @Value($$"${seaweedfs.filer.url}")
     private val fileUrl: String,
     private val documentRepositoryService: DocumentRepositoryService,
-    private val eventDispatcher: DocumentEventDispatcher
+    private val documentEventDispatcher: DocumentEventDispatcher
 ) {
 
     companion object {
@@ -118,7 +118,7 @@ class StorageService(
                     logger.debug { "The file is uploaded succesfully" }
                     documentRepositoryService.createDocument(UUID.fromString(orderId), DocumentType.Other, fileKey)
 
-                    eventDispatcher.dispatchSingleMessageToRabbitMQ(
+                    documentEventDispatcher.dispatchSingleMessageToRabbitMQ(
                         "created", DocumentCreatedEvent(
                             orderId,
                             fileKey,

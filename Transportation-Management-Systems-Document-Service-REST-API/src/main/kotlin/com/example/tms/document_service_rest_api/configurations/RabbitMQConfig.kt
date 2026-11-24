@@ -50,7 +50,7 @@ class RabbitMQConfig {
 
     @Bean
     fun orderEventBinding(
-        @Qualifier("shipmentDocumentQueue") queue: Queue,
+        @Qualifier("orderEventQueue") queue: Queue,
         @Qualifier("orderEventExchange") exchange: TopicExchange
     ): Binding {
         return BindingBuilder.bind(queue).to(exchange).with(ORDER_EVENT_ROUTING_KEY)
@@ -58,7 +58,7 @@ class RabbitMQConfig {
 
     @Bean
     fun shipmentDocumentBinding(
-        @Qualifier("orderEventQueue") queue: Queue,
+        @Qualifier("shipmentDocumentQueue") queue: Queue,
         @Qualifier("shipmentDocumentExchange") exchange: TopicExchange
     ): Binding {
         return BindingBuilder.bind(queue).to(exchange).with(SHIPMENT_DOCUMENT_ROUTING_KEY)
